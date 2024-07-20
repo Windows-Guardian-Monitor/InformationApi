@@ -1,4 +1,5 @@
 ﻿using InformationHandlerApi.Database;
+using InformationHandlerApi.Database.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InformationHandlerApi.Controllers
@@ -14,17 +15,21 @@ namespace InformationHandlerApi.Controllers
             _databaseContext = databaseContext;
         }
 
-        //public IActionResult Index()
-        //{
-        //    return View();
-        //}
-
         [HttpGet(Name = "GetInformation")]
         public object Get()
         {
-            
+
 
             return new { Data = "sample" };
+        }
+
+        [HttpPost]
+        public ActionResult<SampleObj> PostTodoItem(string text)
+        {
+            var sample = new SampleObj { Data = text };
+            _databaseContext.SampleObjs.Add(sample);
+            _databaseContext.SaveChanges();
+            return sample;
         }
     }
 }
