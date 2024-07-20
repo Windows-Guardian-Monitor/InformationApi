@@ -1,17 +1,31 @@
+using InformationHandlerApi.Database;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+
 namespace InformationHandlerApi
 {
     public class Program
     {
+        private static void ConfigureServices(WebApplicationBuilder builder)
+        {
+            builder.Services.AddDbContextPool<DatabaseContext>(options =>
+            {
+                options.UseMySql(ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("MariaDbConnectionString")));   
+            });
+        }
+
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-
+            
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            ConfigureServices(builder);
 
             var app = builder.Build();
 
