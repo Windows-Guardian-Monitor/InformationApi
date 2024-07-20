@@ -1,4 +1,6 @@
-﻿using InformationHandlerApi.Database;
+﻿using InformationHandlerApi.Business.Responses;
+using InformationHandlerApi.Contracts.Repositories;
+using InformationHandlerApi.Database;
 using InformationHandlerApi.Database.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,28 +10,41 @@ namespace InformationHandlerApi.Controllers
     [Route("[controller]")]
     public class InformationController : Controller
     {
-        private readonly DatabaseContext _databaseContext;
+        private readonly IWindowsWorkstationRepository _windowsWorkstationRepository;
 
-        public InformationController(DatabaseContext databaseContext)
+        public InformationController(IWindowsWorkstationRepository windowsWorkstationRepository)
         {
-            _databaseContext = databaseContext;
+            _windowsWorkstationRepository = windowsWorkstationRepository;
         }
 
         [HttpGet(Name = "GetInformation")]
         public object Get()
         {
 
-
             return new { Data = "sample" };
         }
 
         [HttpPost]
-        public ActionResult<SampleObj> PostTodoItem(string text)
+        public async ValueTask<ActionResult<StandardResponse>> PostTodoItem(DbWindowsWorkstation windowsWorkstation)
         {
-            var sample = new SampleObj { Data = text };
-            _databaseContext.SampleObjs.Add(sample);
-            _databaseContext.SaveChanges();
-            return sample;
+            try
+            {
+                await _windowsWorkstationRepository.Upsert(windowsWorkstation);
+
+                return new StandardResponse
+                {
+                    Code = System.Net.HttpStatusCode.OK,
+                    Message = "OK"
+                };
+            }
+            catch (Exception e)
+            {
+                return new StandardResponse
+                {
+                    Code = System.Net.HttpStatusCode.InternalServerError,
+                    Message = e.Message
+                };
+            }
         }
     }
 }
