@@ -8,5 +8,5 @@ public class DatabaseContext : DbContext
     {
     }
 
-    public DbSet<SampleObj> SampleObjs { get; set; }
+    public DbSet<DbWindowsWorkstation> Workstations { get; set; }
 }
