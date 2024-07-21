@@ -8,5 +8,14 @@ public class DatabaseContext : DbContext
     {
     }
 
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<DbWindowsWorkstation>(buildAction =>
+        {
+            buildAction.HasMany<DbDiskInfo>();
+        });
+        base.OnModelCreating(modelBuilder);
+    }
+
     public DbSet<DbWindowsWorkstation> Workstations { get; set; }
 }

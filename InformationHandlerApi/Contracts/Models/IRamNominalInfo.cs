@@ -5,6 +5,6 @@
         string TotalMemory { get; set; }
         string Description { get; set; }
         string Manufacturer { get; set; }
-        uint Speed { get; set; }
+        string Speed { get; set; }
     }
 }

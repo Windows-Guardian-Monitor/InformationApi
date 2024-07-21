@@ -1,12 +1,14 @@
-﻿namespace InformationHandlerApi.Contracts.Models
+﻿using InformationHandlerApi.Database.Models;
+
+namespace InformationHandlerApi.Contracts.Models
 {
     public interface IWindowsWorkstation
     {
         int Id { get; set; }
-        ICpuInfo CpuInfo { get; set; }
-        IEnumerable<IDiskInfo> DisksInfo { get; set; }
-        IOsInfo OsInfo { get; set; }
-        IRamNominalInfo RamInfo { get; set; }
+        DbCpuInfo CpuInfo { get; set; }
+        IEnumerable<DbDiskInfo> DisksInfo { get; set; }
+        DbOsInfo OsInfo { get; set; }
+        DbRamNominalInfo RamInfo { get; set; }
         string Uuid { get; set; }
     }
 }
