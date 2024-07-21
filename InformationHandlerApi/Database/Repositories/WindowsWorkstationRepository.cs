@@ -14,8 +14,10 @@ namespace InformationHandlerApi.Database.Repositories
 
         public async ValueTask Upsert(DbWindowsWorkstation dbWindowsWorkstation)
         {
+            dbWindowsWorkstation.Uuid = dbWindowsWorkstation.Uuid.ToUpper();
+
             var workstation = _databaseContext.Workstations.FirstOrDefault(workstation =>
-                workstation.Uuid.Equals(dbWindowsWorkstation.Uuid, StringComparison.OrdinalIgnoreCase));
+                workstation.Uuid.Equals(dbWindowsWorkstation.Uuid));
 
             try
             {
