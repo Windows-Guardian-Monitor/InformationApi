@@ -7,7 +7,7 @@ namespace InformationHandlerApi.Contracts.Models
         public int Id { get; set; }
         string Architecture { get; set; }
         string? Description { get; set; }
-        string Manufacturer { get; set; }
+        string CpuManufacturer { get; set; }
         string? Name { get; set; }
     }
 }
