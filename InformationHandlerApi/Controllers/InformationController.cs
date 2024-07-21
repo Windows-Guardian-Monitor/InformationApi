@@ -1,8 +1,8 @@
 ﻿using InformationHandlerApi.Business.Responses;
 using InformationHandlerApi.Contracts.Repositories;
-using InformationHandlerApi.Database;
 using InformationHandlerApi.Database.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace InformationHandlerApi.Controllers
 {
@@ -24,11 +24,22 @@ namespace InformationHandlerApi.Controllers
             return new { Data = "sample" };
         }
 
-        [HttpPost]
-        public async ValueTask<ActionResult<StandardResponse>> PostTodoItem(DbWindowsWorkstation windowsWorkstation)
+        [HttpPost("Workstation")]
+        public async ValueTask<ActionResult<StandardResponse>> PostWs([FromBody] byte[] windowsWorkstationBytes)
         {
             try
             {
+                var windowsWorkstation = JsonSerializer.Deserialize<DbWindowsWorkstation>(windowsWorkstationBytes);
+
+                if (windowsWorkstation is null)
+                {
+                    return new StandardResponse
+                    {
+                        Code = System.Net.HttpStatusCode.InternalServerError,
+                        Message = "Could not obtain workstation info"
+                    };
+                }
+                
                 await _windowsWorkstationRepository.Upsert(windowsWorkstation);
 
                 return new StandardResponse
