@@ -32,24 +32,6 @@ namespace InformationHandlerApi.Database.Repositories
             {
                 if (workstation is null)
                 {
-                    //var last = _databaseContext.Workstations.OrderBy(w => w.Id).LastOrDefault();
-
-                    //int wsId;
-
-                    //if (last is null)
-                    //{
-                    //    wsId = 1;
-                    //}
-                    //else
-                    //{
-                    //    wsId = last.Id++;
-                    //}
-
-                    //foreach (var disk in dbWindowsWorkstation.DisksInfo)
-                    //{
-                    //    disk.WsId = wsId;
-                    //}
-
                     await _databaseContext.Workstations.AddAsync(dbWindowsWorkstation);
                     return;
                 }
