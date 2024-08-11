@@ -12,9 +12,11 @@ public class DatabaseContext : DbContext
     {
         modelBuilder.Entity<DbWindowsWorkstation>(buildAction =>
         {
-            buildAction.HasMany<DbDiskInfo>();
-            
-        });        
+            //buildAction.HasMany<DbDiskInfo>().WithOne(x => x.Workstation).HasForeignKey(x => x.WorkstationId).IsRequired();
+        });
+
+        //modelBuilder.Entity<DbWindowsWorkstation>()
+        //    .HasOne(x => x.CpuInfo).WithOne(x => x.Workstation).HasForeignKey<DbCpuInfo>(x => x.WorkstationId).IsRequired();
     }
 
     public DbSet<DbWindowsWorkstation> Workstations { get; set; }

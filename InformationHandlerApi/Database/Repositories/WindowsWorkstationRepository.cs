@@ -1,7 +1,6 @@
 ﻿using InformationHandlerApi.Contracts.Repositories;
 using InformationHandlerApi.Database.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Data.Entity;
 
 namespace InformationHandlerApi.Database.Repositories
 {
@@ -18,53 +17,55 @@ namespace InformationHandlerApi.Database.Repositories
         {
             dbWindowsWorkstation.Uuid = dbWindowsWorkstation.Uuid.ToUpper();
 
-
             var workstation = _databaseContext.Workstations
-                .FirstOrDefault(workstation =>
-                workstation.Uuid.Equals(dbWindowsWorkstation.Uuid));
+                .Include(x => x.CpuInfo)
+                .Include(x => x.OsInfo)
+                .Include(x => x.RamInfo)
+                .Include(x => x.DisksInfo)
+                .FirstOrDefault(workstation => workstation.Uuid.Equals(dbWindowsWorkstation.Uuid));
+
+            //var workstation = _databaseContext.Workstations
+            //    .FirstOrDefault(workstation =>
+            //    workstation.Uuid.Equals(dbWindowsWorkstation.Uuid));
 
             try
             {
                 if (workstation is null)
                 {
-                    var last = _databaseContext.Workstations.OrderBy(w => w.Id).LastOrDefault();
+                    //var last = _databaseContext.Workstations.OrderBy(w => w.Id).LastOrDefault();
 
-                    int wsId;
+                    //int wsId;
 
-                    if (last is null)
-                    {
-                        wsId = 1;
-                    }
-                    else
-                    {
-                        wsId = last.Id++;
-                    }
+                    //if (last is null)
+                    //{
+                    //    wsId = 1;
+                    //}
+                    //else
+                    //{
+                    //    wsId = last.Id++;
+                    //}
 
-                    foreach (var disk in dbWindowsWorkstation.DisksInfo)
-                    {
-                        disk.WsId = wsId;
-                    }
+                    //foreach (var disk in dbWindowsWorkstation.DisksInfo)
+                    //{
+                    //    disk.WsId = wsId;
+                    //}
 
                     await _databaseContext.Workstations.AddAsync(dbWindowsWorkstation);
                     return;
                 }
 
-                var cpu = _databaseContext.Cpus.FirstOrDefault(c => c.CpuInfoId == workstation.Id);
-                var disks = _databaseContext.Disks.Where(c => c.WsId == workstation.Id).ToArray();
-                var os = _databaseContext.Systems.FirstOrDefault(c => c.OsInfoId == workstation.Id);
-                var ram = _databaseContext.Rams.FirstOrDefault(c => c.RamInfoId == workstation.Id);
-
                 var i = 0;
+                var diksArray = workstation.DisksInfo.ToArray();
                 foreach (var disk in dbWindowsWorkstation.DisksInfo)
                 {
-                    disk.WsId = workstation.Id;
-                    disk.Id = disks[i].Id;
+                    disk.WorkstationId = workstation.Id;
+                    disk.Id = diksArray[i].Id;
                     i++;
                 }
 
-                dbWindowsWorkstation.CpuInfo.CpuInfoId = cpu.CpuInfoId;
-                dbWindowsWorkstation.RamInfo.RamInfoId = ram.RamInfoId;
-                dbWindowsWorkstation.OsInfo.OsInfoId = os.OsInfoId;
+                dbWindowsWorkstation.CpuInfo.CpuInfoId = workstation.CpuInfo.CpuInfoId;
+                dbWindowsWorkstation.OsInfo.OsInfoId = workstation.OsInfo.OsInfoId;
+                dbWindowsWorkstation.RamInfo.RamInfoId = workstation.RamInfo.RamInfoId;
 
                 workstation.DisksInfo = dbWindowsWorkstation.DisksInfo;
                 workstation.CpuInfo = dbWindowsWorkstation.CpuInfo;

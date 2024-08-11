@@ -8,6 +8,7 @@ namespace InformationHandlerApi.Database.Models
         [Key]
         public int Id { get; set; }
         public string Uuid { get; set; }
+        //public int CpuInfoId { get; set; }
         public DbCpuInfo CpuInfo { get; set; }
         public IEnumerable<DbDiskInfo> DisksInfo { get; set; }
         public DbOsInfo OsInfo { get; set; }

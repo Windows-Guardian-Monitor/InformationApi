@@ -11,5 +11,8 @@ namespace InformationHandlerApi.Database.Models
         public string? Description { get; set; }
         public string CpuManufacturer { get; set; }
         public string? Name { get; set; }
+
+        //public int WorkstationId { get; set; }
+        //public DbWindowsWorkstation Workstation { get; set; } = null!;
     }
 }
