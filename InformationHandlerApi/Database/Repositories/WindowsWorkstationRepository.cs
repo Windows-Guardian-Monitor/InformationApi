@@ -71,6 +71,7 @@ namespace InformationHandlerApi.Database.Repositories
                 workstation.RamInfo = dbWindowsWorkstation.RamInfo;
                 workstation.OsInfo = dbWindowsWorkstation.OsInfo;
 
+                _databaseContext.ChangeTracker.Clear();
                 _databaseContext.Workstations.Update(workstation);
             }
             catch (Exception e)
@@ -81,7 +82,6 @@ namespace InformationHandlerApi.Database.Repositories
             {
                 try
                 {
-                    _databaseContext.ChangeTracker.Clear();
                     await _databaseContext.SaveChangesAsync();
                 }
                 catch (Exception e)
