@@ -59,7 +59,7 @@ namespace InformationHandlerApi.Database.Repositories
             }
             catch (Exception e)
             {
-
+                Console.WriteLine(e);
             }
             finally
             {
@@ -69,8 +69,7 @@ namespace InformationHandlerApi.Database.Repositories
                 }
                 catch (Exception e)
                 {
-
-
+                    Console.WriteLine(e);
                 }
             }
 
