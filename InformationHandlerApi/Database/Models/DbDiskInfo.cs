@@ -7,6 +7,7 @@ namespace InformationHandlerApi.Database.Models
     {
         [Key]
         public int Id { get; set; }
+        public int WsId { get; set; }
         public string AvailableSize { get; set; }
         public string? DiskName { get; set; }
         public string? DiskType { get; set; }

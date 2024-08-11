@@ -6,7 +6,7 @@ namespace InformationHandlerApi.Database.Models
     public class DbOsInfo : IOsInfo
     {
         [Key]
-        public int Id { get; set; }
+        public int OsInfoId { get; set; }      
         public string Architecture { get; set; }
         public string Description { get; set; }
         public string OsManufacturer { get; set; }

@@ -13,9 +13,13 @@ public class DatabaseContext : DbContext
         modelBuilder.Entity<DbWindowsWorkstation>(buildAction =>
         {
             buildAction.HasMany<DbDiskInfo>();
-        });
-        base.OnModelCreating(modelBuilder);
+            
+        });        
     }
 
     public DbSet<DbWindowsWorkstation> Workstations { get; set; }
+    public DbSet<DbDiskInfo> Disks { get; set; }
+    public DbSet<DbCpuInfo> Cpus { get; set; }
+    public DbSet<DbOsInfo> Systems { get; set; }
+    public DbSet<DbRamNominalInfo> Rams { get; set; }
 }

@@ -4,7 +4,7 @@ namespace InformationHandlerApi.Contracts.Models
 {
     public interface ICpuInfo
     {
-        public int Id { get; set; }
+        public int CpuInfoId { get; set; }
         string Architecture { get; set; }
         string? Description { get; set; }
         string CpuManufacturer { get; set; }
