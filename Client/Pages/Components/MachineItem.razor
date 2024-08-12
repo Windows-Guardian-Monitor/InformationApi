@@ -1,12 +1,23 @@
-﻿@using ClientServer.Shared.DataTransferObjects
+﻿@page "/workstations/{Id}"
+@using ClientServer.Shared.DataTransferObjects
 @using BlazorBootstrap;
+@using System.Text.Json
+@inject HttpClient Http
 
-<h3>@Workstation.Uuid</h3>
+@if(Workstation is null)
+{
+	<p><em>Carregando informações da máquina...</em></p>
+}
+else
+{
+	<h3>Nome da Máquina: @Workstation.HostName</h3>
 
-<Card Style="width:28rem;">
-	<CardBody>
-		<CardTitle>@Workstation.Uuid</CardTitle>
-	</CardBody>
+	<Card Style="width:28rem;">
+		<CardBody>
+			<CardTitle>@Workstation.Uuid</CardTitle>
+		</CardBody>
+	</Card>
+
 	<Card Style="width:28rem;">
 		<CardHeader>
 			Processador
@@ -18,48 +29,60 @@
 			<li class="list-group-item">Arquitetura: @Workstation.CpuArchitecture</li>
 		</ul>
 	</Card>
-</Card>
 
-<div class="section">
-	<h2>UUID</h2>
-	<p class="highlight">@Workstation.Uuid</p>
-</div>
+	<Card Style="width:28rem;">
+		<CardHeader>
+			Memória
+		</CardHeader>
+		<ul class="list-group list-group-flush">
+			<li class="list-group-item">Quantidade Total: @Workstation.TotalMemory</li>
+			<li class="list-group-item">Velocidade: @Workstation.MemorySpeed</li>
+			<li class="list-group-item">Fabricante: @Workstation.MemoryManufacturer</li>
+		</ul>
+	</Card>
 
-<div class="section">
-	<h2>Processador</h2>
-	<p class="info"><strong>Descrição:</strong> @Workstation.CpuDescription</p>
-	<p class="info"><strong>Nome:</strong> @Workstation.CpuName</p>
-	<p class="info"><strong>Fabricante:</strong> @Workstation.CpuManufacturer</p>
-	<p class="info"><strong>Arquitetura:</strong> @Workstation.CpuArchitecture</p>
-</div>
+	<Card Style="width:28rem;">
+		<CardHeader>
+			Sistema Operacional
+		</CardHeader>
+		<ul class="list-group list-group-flush">
+			<li class="list-group-item">Descrição: @Workstation.OSDescription</li>
+			<li class="list-group-item">Fabricante: @Workstation.OsManufacturer</li>
+			<li class="list-group-item">Número Serial: @Workstation.OsSerial</li>
+		</ul>
+	</Card>
 
-<div class="section">
-	<h2>Memória RAM</h2>
-	<p class="info"><strong>Quantidade Total:</strong> @Workstation.TotalMemory</p>
-	<p class="info"><strong>Velocidade:</strong> @Workstation.MemorySpeed</p>
-	<p class="info"><strong>Fabricante:</strong> @Workstation.MemoryManufacturer</p>
-</div>
-
-<div class="section">
-	<h2>Sistema Operacional</h2>
-	<p class="info"><strong>Descrição:</strong> @Workstation.OSDescription</p>
-	<p class="info"><strong>Fabricante:</strong> @Workstation.OsManufacturer</p>
-	<p class="info"><strong>Número Serial:</strong> @Workstation.OsSerial</p>
-</div>
-
-<div class="section">
-	<h2>Discos</h2>
-	@foreach (var disk in Workstation.Disks)
-	{
-		<div class="list-item">
-			<p><strong>Tamanho Total:</strong> @disk.TotalSize</p>
-			<p><strong>Tipo:</strong> @disk.DiskType</p>
-			<p><strong>Nome:</strong> @disk.DiskName</p>
-		</div>
-	}
-</div>
+	<Card Style="width:28rem;">
+		<CardHeader>
+			Discos do Sistema
+		</CardHeader>
+		<ul class="list-group list-group-flush">
+			@foreach (var item in Workstation.Disks)
+			{
+				<li class="list-group-item">Tamanho Total: @item.TotalSize</li>
+				<li class="list-group-item">Tipo: @item.DiskType</li>
+				<li class="list-group-item">Nome: @item.DiskName</li>
+			}
+		</ul>
+	</Card>
+}
 
 @code {
 	[Parameter]
-	public WorkstationItem Workstation { get; set; }
+	public string Id { get; set; }
+
+	private WorkstationItem Workstation { get; set; }
+
+	private const string _endpoint = "Information/GetSpecificWorkstation";
+
+	protected override async Task OnInitializedAsync()
+	{
+		var url = $"{InformationHandler.GetUrl()}{_endpoint}";
+
+		var response = await Http.PostAsJsonAsync(url, Id);
+
+		var json = await response.Content.ReadAsStringAsync();
+
+		Workstation = JsonSerializer.Deserialize<WorkstationItem>(json);
+	}
 }
