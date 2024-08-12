@@ -29,7 +29,7 @@ namespace InformationHandlerApi
 
             var app = builder.Build();
 
-            app.UseCors(corsBuilder => corsBuilder.AllowAnyOrigin().AllowAnyOrigin().AllowAnyMethod());
+            app.UseCors(corsBuilder => corsBuilder.AllowAnyOrigin().AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 
             if (app.Environment.IsDevelopment())
             {

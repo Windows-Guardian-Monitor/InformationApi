@@ -1,13 +1,17 @@
 ﻿@using ClientServer.Shared.DataTransferObjects
 @using BlazorBootstrap;
+@using System.Text.Json
 @inject NavigationManager NavigationManager
+@inject HttpClient Http
+
 <h3>Máquinas</h3>
 
 <Card Style="width:28rem;">
 	<CardBody>
 		<CardTitle>Nome da máquina: @Workstation.HostName</CardTitle>
 		<CardSubTitle Class="mb-2 text-muted">UUID: @Workstation.Uuid</CardSubTitle>
-		<Button Color="ButtonColor.Primary" @onclick=Foda Type ="ButtonType.Link">Ver mais informações</Button>
+		@* <button @onclick="Foda"></button> *@
+		<Button Color="ButtonColor.Primary" @onclick="RetrieveWorkstation" Type="ButtonType.Link">Ver mais informações</Button>
 	</CardBody>
 </Card>
 
@@ -15,8 +19,18 @@
 	[Parameter]
 	public SimpleWorkstationItem Workstation { get; set; }
 
-	public void Foda()
+	private const string _endpoint = "Information/GetSpecificWorkstation";
+
+	public async Task RetrieveWorkstation()
 	{
+		var url = $"{InformationHandler.GetUrl()}{_endpoint}";
+
+		var response = await Http.PostAsJsonAsync(url, Workstation.Id.ToString());
+
+		var json = await response.Content.ReadAsStringAsync();
+
+		var workstation = JsonSerializer.Deserialize<WorkstationItem>(json);
+
 		//TODO AQUI VAI FICAR A LOGICA DE ABRIR UMA NOVA PAGINA COM AS INFORMACOES COMPLETAS DA MAQUINA
 	}
 }

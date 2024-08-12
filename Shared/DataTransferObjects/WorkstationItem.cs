@@ -1,4 +1,6 @@
-﻿namespace ClientServer.Shared.DataTransferObjects
+﻿using System.Text.Json.Serialization;
+
+namespace ClientServer.Shared.DataTransferObjects
 {
     
 	public class WorkstationItem
@@ -20,18 +22,43 @@
 			Disks = disks;
 		}
 
+		[JsonPropertyName("hostName")]
         public string? HostName { get; set; }
+		
+		[JsonPropertyName("uuid")]
         public string? Uuid { get; set; }
+		
+		[JsonPropertyName("cpuDescription")]
 		public string? CpuDescription { get; set; }
+		
+		[JsonPropertyName("cpuName")]
         public string? CpuName { get; set; }
+		
+		[JsonPropertyName("cpuManufacturer")]
         public string? CpuManufacturer { get; set; }
+		
+		[JsonPropertyName("cpuArchitecture")]
         public string? CpuArchitecture { get; set; }
+		
+		[JsonPropertyName("totalMemory")]
         public string? TotalMemory { get; set; }
+		
+		[JsonPropertyName("memorySpeed")]
         public string? MemorySpeed { get; set; }
+
+		[JsonPropertyName("memoryManufacturer")]
         public string? MemoryManufacturer { get; set; }
-        public string? OSDescription { get; set; }
+		
+		[JsonPropertyName("osDescription")]
+        public string? OSDescription { get; set; }		
+
+		[JsonPropertyName("osManufacturer")]
         public string? OsManufacturer { get; set; }
+		
+		[JsonPropertyName("osSerial")]
         public string? OsSerial { get; set; }
+		
+		[JsonPropertyName("disks")]
         public List<DiskItem> Disks { get; set; }
     }
 }

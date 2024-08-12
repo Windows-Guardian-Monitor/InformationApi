@@ -59,12 +59,17 @@ namespace InformationHandlerApi.Controllers
 			}
 		}
 
-		[HttpGet("GetSpecificWorkstation")]
-		public async ValueTask<ActionResult<WorkstationItem>> GetWorkstations([FromBody] int id)
+		[HttpPost("GetSpecificWorkstation")]
+		public ActionResult<WorkstationItem> GetWorkstation([FromBody] string strId)
 		{
 			if (_windowsWorkstationRepository.Count() is 0)
 			{
 				return NotFound();
+			}
+
+			if (int.TryParse(strId, out var id) is false)
+			{
+				return BadRequest("Incorrect parameter type");
 			}
 
 			var dbWorkstation = _windowsWorkstationRepository.SelectWorkstationsAndAttributesById(id);
@@ -100,7 +105,7 @@ namespace InformationHandlerApi.Controllers
 		}
 
 		[HttpGet("GetAllWorkstations")]
-		public async ValueTask<ActionResult<List<SimpleWorkstationItem>>> GetSimpleWorkstations()
+		public ActionResult<List<SimpleWorkstationItem>> GetSimpleWorkstations()
 		{
 			if (_windowsWorkstationRepository.Count() is 0)
 			{
@@ -122,8 +127,6 @@ namespace InformationHandlerApi.Controllers
 
 				items.Add(workstationItem);
 			}
-
-			await Task.Run(() => { });
 
 			return items;
 		}
