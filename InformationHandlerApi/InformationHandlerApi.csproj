@@ -23,4 +23,8 @@
     <Folder Include="Business\Models\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Shared\ClientServer.Shared.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace InformationHandlerApi.Database.Repositories
 {
-    public class WindowsWorkstationRepository : IWindowsWorkstationRepository
+	public class WindowsWorkstationRepository : IWindowsWorkstationRepository
     {
         private readonly DatabaseContext _databaseContext;
 
@@ -13,7 +13,18 @@ namespace InformationHandlerApi.Database.Repositories
             _databaseContext = databaseContext;
         }
 
-        public async ValueTask Upsert(DbWindowsWorkstation dbWindowsWorkstation)
+		public int Count() => _databaseContext.Workstations.Count();
+
+		public List<DbWindowsWorkstation> SelectWorkstations() => _databaseContext.Workstations.Include(x => x.DisksInfo).ToList();
+
+		public DbWindowsWorkstation SelectWorkstationsAndAttributesById(int id) => _databaseContext.Workstations
+				.Include(x => x.CpuInfo)
+				.Include(x => x.OsInfo)
+				.Include(x => x.RamInfo)
+				.Include(x => x.DisksInfo)
+			.FirstOrDefault(ws => ws.Id == id);
+
+		public async ValueTask Upsert(DbWindowsWorkstation dbWindowsWorkstation)
         {
             dbWindowsWorkstation.Uuid = dbWindowsWorkstation.Uuid.ToUpper();
 

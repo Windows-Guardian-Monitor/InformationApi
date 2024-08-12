@@ -10,5 +10,6 @@ namespace InformationHandlerApi.Contracts.Models
         DbOsInfo OsInfo { get; set; }
         DbRamNominalInfo RamInfo { get; set; }
         string Uuid { get; set; }
+        string HostName { get; set; }
     }
 }

@@ -29,6 +29,8 @@ namespace InformationHandlerApi
 
             var app = builder.Build();
 
+            app.UseCors(corsBuilder => corsBuilder.AllowAnyOrigin().AllowAnyOrigin().AllowAnyMethod());
+
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();

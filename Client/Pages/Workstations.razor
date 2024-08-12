@@ -1,0 +1,46 @@
+﻿@page "/workstations"
+@using ClientServer.Shared.DataTransferObjects
+@inject HttpClient Http
+
+<h3>Relatório de Máquinas</h3>
+
+@if (_workstations is null)
+{
+	<p><em>Carregando máquinas...</em></p>
+}
+else
+{
+	@if (_workstations.Count is 0)
+	{
+		<p><em>Não foram encontradas máquinas</em></p>
+	}
+	else
+	{
+		@foreach (var workstaion in _workstations)
+		{
+			<ClientServer.Client.Pages.Components.SimpleMachineItem Workstation="workstaion" />
+		}
+	}
+}
+
+@code {
+	private const string _endpoint = "Information/GetAllWorkstations";
+
+	private List<SimpleWorkstationItem> _workstations;
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			var url = $"{InformationHandler.GetUrl()}{_endpoint}";
+
+			_workstations = await Http.GetFromJsonAsync<List<SimpleWorkstationItem>>(url);
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e);
+		}
+
+		await base.OnInitializedAsync();
+	}
+}

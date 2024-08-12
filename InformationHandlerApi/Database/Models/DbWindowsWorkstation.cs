@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace InformationHandlerApi.Database.Models
 {
-    public class DbWindowsWorkstation : IWindowsWorkstation
+	public class DbWindowsWorkstation : IWindowsWorkstation
     {
         [Key]
         public int Id { get; set; }
@@ -13,5 +13,6 @@ namespace InformationHandlerApi.Database.Models
         public IEnumerable<DbDiskInfo> DisksInfo { get; set; }
         public DbOsInfo OsInfo { get; set; }
         public DbRamNominalInfo RamInfo { get; set; }
-    }
+		public string HostName { get; set; }
+	}
 }
