@@ -9,7 +9,6 @@
 	<CardBody>
 		<CardTitle>Nome da máquina: @Workstation.HostName</CardTitle>
 		<CardSubTitle Class="mb-2 text-muted">UUID: @Workstation.Uuid</CardSubTitle>
-		@* <button @onclick="Foda"></button> *@
 		<Button Color="ButtonColor.Primary" @onclick="OpenWorkstationPage" Type="ButtonType.Link">Ver mais informações</Button>
 	</CardBody>
 </Card>
@@ -24,7 +23,5 @@
 		var pageUrl = $"workstations/{Workstation.Id}";
 
 		await jsRuntime.InvokeVoidAsync("open", pageUrl, "_blank");
-
-		//TODO AQUI VAI FICAR A LOGICA DE ABRIR UMA NOVA PAGINA COM AS INFORMACOES COMPLETAS DA MAQUINA
 	}
 }

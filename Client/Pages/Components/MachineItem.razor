@@ -4,7 +4,7 @@
 @using System.Text.Json
 @inject HttpClient Http
 
-@if(Workstation is null)
+@if (Workstation is null)
 {
 	<p><em>Carregando informações da máquina...</em></p>
 }
@@ -12,13 +12,13 @@ else
 {
 	<h3>Nome da Máquina: @Workstation.HostName</h3>
 
-	<Card Style="width:28rem;">
+	<Card Style="width:28rem;margin-top:10px;margin-bottom:10px">
 		<CardBody>
 			<CardTitle>@Workstation.Uuid</CardTitle>
 		</CardBody>
 	</Card>
 
-	<Card Style="width:28rem;">
+	<Card Style="width:28rem;margin-top:10px;margin-bottom:10px">
 		<CardHeader>
 			Processador
 		</CardHeader>
@@ -30,7 +30,7 @@ else
 		</ul>
 	</Card>
 
-	<Card Style="width:28rem;">
+	<Card Style="width:28rem;margin-top:10px;margin-bottom:10px">
 		<CardHeader>
 			Memória
 		</CardHeader>
@@ -41,7 +41,7 @@ else
 		</ul>
 	</Card>
 
-	<Card Style="width:28rem;">
+	<Card Style="width:28rem;margin-top:10px;margin-bottom:10px">
 		<CardHeader>
 			Sistema Operacional
 		</CardHeader>
@@ -52,16 +52,20 @@ else
 		</ul>
 	</Card>
 
-	<Card Style="width:28rem;">
+	<Card Style="width:28rem;margin-top:10px;margin-bottom:10px">
 		<CardHeader>
 			Discos do Sistema
 		</CardHeader>
 		<ul class="list-group list-group-flush">
 			@foreach (var item in Workstation.Disks)
 			{
-				<li class="list-group-item">Tamanho Total: @item.TotalSize</li>
-				<li class="list-group-item">Tipo: @item.DiskType</li>
-				<li class="list-group-item">Nome: @item.DiskName</li>
+				<Card Style="margin:10px">
+					<CardHeader>
+						Nome: @item.DiskName
+					</CardHeader>
+					<li class="list-group-item">Tamanho Total: @item.TotalSize</li>
+					<li class="list-group-item">Tipo: @item.DiskType</li>
+				</Card>
 			}
 		</ul>
 	</Card>
