@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>ClientServer</title>
     <base href="/" />
-    
+
     <link href="css/app.css" rel="stylesheet" />
     <link href="ClientServer.Client.styles.css" rel="stylesheet" />
     <link href="manifest.json" rel="manifest" />
@@ -25,8 +25,36 @@
     <script src="_content/Blazor.Bootstrap/blazor.bootstrap.js"></script>
 </head>
 
+<style>
+    .spinner {
+        border: 16px solid silver;
+        border-top: 16px solid #337AB7;
+        border-radius: 50%;
+        width: 100px;
+        height: 100px;
+        animation: spin 700ms linear infinite;
+        top: 50%;
+        left: 50%;
+        right:50%;
+        bottom:50%;
+        position: absolute;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg)
+        }
+
+        100% {
+            transform: rotate(360deg)
+        }
+    }
+</style>
 <body>
-    <div id="app">Loading...</div>
+    <!--<div id="app">Carregando...</div>-->
+    <div id="app">
+        <div class="spinner"></div>
+    </div>
 
     <div id="blazor-error-ui">
         An unhandled error has occurred.
