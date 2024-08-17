@@ -1,0 +1,88 @@
+﻿@page "/workstations/{Id}"
+@using ClientServer.Shared.DataTransferObjects
+@using BlazorBootstrap;
+@using System.Text.Json
+@inject HttpClient Http
+
+@if(Workstation is null)
+{
+	<p><em>Carregando informações da máquina...</em></p>
+}
+else
+{
+	<h3>Nome da Máquina: @Workstation.HostName</h3>
+
+	<Card Style="width:28rem;">
+		<CardBody>
+			<CardTitle>@Workstation.Uuid</CardTitle>
+		</CardBody>
+	</Card>
+
+	<Card Style="width:28rem;">
+		<CardHeader>
+			Processador
+		</CardHeader>
+		<ul class="list-group list-group-flush">
+			<li class="list-group-item">Descrição: @Workstation.CpuDescription</li>
+			<li class="list-group-item">Nome: @Workstation.CpuName</li>
+			<li class="list-group-item">Fabricante: @Workstation.CpuManufacturer</li>
+			<li class="list-group-item">Arquitetura: @Workstation.CpuArchitecture</li>
+		</ul>
+	</Card>
+
+	<Card Style="width:28rem;">
+		<CardHeader>
+			Memória
+		</CardHeader>
+		<ul class="list-group list-group-flush">
+			<li class="list-group-item">Quantidade Total: @Workstation.TotalMemory</li>
+			<li class="list-group-item">Velocidade: @Workstation.MemorySpeed</li>
+			<li class="list-group-item">Fabricante: @Workstation.MemoryManufacturer</li>
+		</ul>
+	</Card>
+
+	<Card Style="width:28rem;">
+		<CardHeader>
+			Sistema Operacional
+		</CardHeader>
+		<ul class="list-group list-group-flush">
+			<li class="list-group-item">Descrição: @Workstation.OSDescription</li>
+			<li class="list-group-item">Fabricante: @Workstation.OsManufacturer</li>
+			<li class="list-group-item">Número Serial: @Workstation.OsSerial</li>
+		</ul>
+	</Card>
+
+	<Card Style="width:28rem;">
+		<CardHeader>
+			Discos do Sistema
+		</CardHeader>
+		<ul class="list-group list-group-flush">
+			@foreach (var item in Workstation.Disks)
+			{
+				<li class="list-group-item">Tamanho Total: @item.TotalSize</li>
+				<li class="list-group-item">Tipo: @item.DiskType</li>
+				<li class="list-group-item">Nome: @item.DiskName</li>
+			}
+		</ul>
+	</Card>
+}
+
+@code {
+	[Parameter]
+	public string Id { get; set; }
+
+	private WorkstationItem Workstation { get; set; }
+
+	private const string _endpoint = "Information/GetSpecificWorkstation";
+
+	protected override async Task OnInitializedAsync()
+	{
+		var url = $"{InformationHandler.GetUrl()}{_endpoint}";
+
+		var response = await Http.PostAsJsonAsync(url, Id);
+
+		var json = await response.Content.ReadAsStringAsync();
+
+		Workstation = JsonSerializer.Deserialize<WorkstationItem>(json);
+	}
+}
