@@ -1,0 +1,54 @@
+﻿@page "/create_rule"
+@using ClientServer.Client.Models
+@using System.Text.Json
+@inject HttpClient Http
+<PageTitle>Criação de Regras</PageTitle>
+
+@if (_programs is null)
+{
+	<div>
+		Carregando programas...
+	</div>
+}
+else
+{
+	<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 0; margin: 0;">
+		<ul style="padding: 0; margin: 0; list-style: none;">
+			@foreach (var item in _programs)
+			{
+				<RuleListItem Program="@item"></RuleListItem>
+			}
+		</ul>
+	</div>
+
+	<Button @onclick=A>TESTE</Button>
+}
+
+@code {
+	private const string _endpoint = "Program";
+
+	private List<UiProgram> _programs;
+
+	void A()
+	{
+		//TODO CONTINUAR AQUI CRIAR LOGICA QUE PEGA O IDENTIFICADOR E MANDA P API P CRIAR UMA NOVA REGRA GERAL
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			var url = $"{InformationHandler.GetUrl()}{_endpoint}";
+
+			var response = await Http.GetAsync(url);
+
+			var content = await response.Content.ReadAsStringAsync();
+
+			_programs = JsonSerializer.Deserialize<List<UiProgram>>(content);
+		}
+		catch (Exception e)
+		{
+
+		}
+	}
+}

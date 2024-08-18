@@ -25,4 +25,5 @@ public class DatabaseContext : DbContext
     public DbSet<DbCpuInfo> Cpus { get; set; }
     public DbSet<DbOsInfo> Systems { get; set; }
     public DbSet<DbRamNominalInfo> Rams { get; set; }
+    public DbSet<DbProgram> Programs { get; set; }
 }

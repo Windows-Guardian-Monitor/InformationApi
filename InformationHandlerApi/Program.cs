@@ -11,7 +11,7 @@ namespace InformationHandlerApi
         private static void ConfigureServices(WebApplicationBuilder builder)
         {
             var conn = builder.Configuration.GetConnectionString("ConnectionString");
-            builder.Services.AddMySql<DatabaseContext>(conn, ServerVersion.AutoDetect(conn));
+            builder.Services.AddMySql<DatabaseContext>(conn, ServerVersion.AutoDetect(conn), options => options.EnableStringComparisonTranslations());
             //builder.Services.AddDbContext<DatabaseContext>(options => options.UseMySql(ServerVersion.AutoDetect(conn)));
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
@@ -19,6 +19,7 @@ namespace InformationHandlerApi
             builder.Services.AddHostedService<DatabaseHandlerService>();
 
             builder.Services.AddTransient<IWindowsWorkstationRepository, WindowsWorkstationRepository>();
+            builder.Services.AddTransient<IProgramRepository, ProgramRepository>();
         }
 
         public static void Main(string[] args)
