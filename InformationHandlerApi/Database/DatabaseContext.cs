@@ -4,6 +4,7 @@ namespace InformationHandlerApi.Database;
 
 public class DatabaseContext : DbContext
 {
+    //DO NOT DELETE THIS CTOR
     public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
     {
     }

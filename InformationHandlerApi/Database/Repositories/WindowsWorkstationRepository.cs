@@ -65,6 +65,8 @@ namespace InformationHandlerApi.Database.Repositories
                 workstation.RamInfo = dbWindowsWorkstation.RamInfo;
                 workstation.OsInfo = dbWindowsWorkstation.OsInfo;
 
+                workstation.HostName = dbWindowsWorkstation.HostName;
+
                 _databaseContext.ChangeTracker.Clear();
                 _databaseContext.Workstations.Update(workstation);
             }
