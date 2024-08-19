@@ -20,6 +20,7 @@ namespace InformationHandlerApi
 
             builder.Services.AddTransient<IWindowsWorkstationRepository, WindowsWorkstationRepository>();
             builder.Services.AddTransient<IProgramRepository, ProgramRepository>();
+            builder.Services.AddTransient<IRuleRepository, RuleRepository>();
         }
 
         public static void Main(string[] args)

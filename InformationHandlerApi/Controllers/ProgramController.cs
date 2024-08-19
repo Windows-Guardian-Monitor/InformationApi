@@ -19,19 +19,19 @@ namespace InformationHandlerApi.Controllers
 		}
 
 		[HttpPost("Send")]
-		public async ValueTask<ActionResult<StandardResponse>> PostWs([FromBody] byte[] windowsWorkstationBytes)
+		public ValueTask<ActionResult<StandardResponse>> PostPrograms([FromBody] byte[] serializedProgramList)
 		{
 			try
 			{
-				var programs = JsonSerializer.Deserialize<List<ProgramRequest>>(windowsWorkstationBytes);
+				var programs = JsonSerializer.Deserialize<List<ProgramRequest>>(serializedProgramList);
 
 				if (programs is null)
 				{
-					return new StandardResponse
+					return new ValueTask<ActionResult<StandardResponse>>(new StandardResponse
 					{
 						Code = System.Net.HttpStatusCode.InternalServerError,
 						Message = "Could not obtain workstation info"
-					};
+					});
 				}
 
 				foreach (ProgramRequest? program in programs)
@@ -44,19 +44,19 @@ namespace InformationHandlerApi.Controllers
 					_programRepository.Insert(program);
 				}
 
-                return new StandardResponse
+                return new ValueTask<ActionResult<StandardResponse>>(new StandardResponse
 				{
 					Code = System.Net.HttpStatusCode.OK,
 					Message = "OK"
-				};
+				});
 			}
 			catch (Exception e)
 			{
-				return new StandardResponse
+				return new ValueTask<ActionResult<StandardResponse>>(new StandardResponse
 				{
 					Code = System.Net.HttpStatusCode.InternalServerError,
 					Message = e.Message
-				};
+				});
 			}
 		}
 

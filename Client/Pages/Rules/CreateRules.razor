@@ -1,9 +1,13 @@
 ﻿@page "/create_rule"
 @using ClientServer.Client.Models
 @using System.Text.Json
+@using ClientServer.Client.Operators
+@using ClientServer.Client.Pages.Components
+@using InformationHandlerApi.Business.Responses
 @inject HttpClient Http
 <PageTitle>Criação de Regras</PageTitle>
-
+<CustomSnackbar SnackbarOperator="_customSnackbarOperator" />
+<h3>Selecione as aplicações para bloquear</h3>
 @if (_programs is null)
 {
 	<div>
@@ -21,24 +25,57 @@ else
 		</ul>
 	</div>
 
-	<Button @onclick=A>TESTE</Button>
+	<Button @onclick=CreateRuleOnServer style="margin-top:10px" class="btn btn-primary">Criar regra</Button>
 }
 
 @code {
-	private const string _endpoint = "Program";
-
 	private List<UiProgram> _programs;
 
-	void A()
+	private CustomSnackbarOperator _customSnackbarOperator = new();
+
+	private async Task CreateRuleOnServer()
 	{
-		//TODO CONTINUAR AQUI CRIAR LOGICA QUE PEGA O IDENTIFICADOR E MANDA P API P CRIAR UMA NOVA REGRA GERAL
+		try
+		{
+			_customSnackbarOperator.Hide();
+
+			if (_programs.Any(p => p.Selected) is false)
+			{
+				_customSnackbarOperator.ShowWarningMessage("Por favor selecione pelo menos uma aplicação para criar uma regra.");
+				return;
+			}
+
+			var selectedPrograms = _programs.Where(p => p.Selected).ToList();
+
+			const string endpoint = "Rules/Create";
+
+			var url = $"{InformationHandler.GetUrl()}{endpoint}";
+
+			var rawResponse = await Http.PostAsJsonAsync(url, JsonSerializer.SerializeToUtf8Bytes(selectedPrograms));
+
+			if (rawResponse.IsSuccessStatusCode is false)
+			{
+				var errorResponse = JsonSerializer.Deserialize<StandardResponse>(await rawResponse.Content.ReadAsStringAsync());
+
+				_customSnackbarOperator.ShowErrorMessage(errorResponse.Message);
+				return;
+			}
+
+			_customSnackbarOperator.ShowInformationMessage("Regra criada com sucesso");
+		}
+		catch (Exception e)
+		{
+			_customSnackbarOperator.ShowErrorMessage(e.Message);
+		}
 	}
 
 	protected override async Task OnInitializedAsync()
 	{
 		try
 		{
-			var url = $"{InformationHandler.GetUrl()}{_endpoint}";
+			const string endpoint = "Program";
+
+			var url = $"{InformationHandler.GetUrl()}{endpoint}";
 
 			var response = await Http.GetAsync(url);
 
