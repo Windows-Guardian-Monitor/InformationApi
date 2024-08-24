@@ -27,11 +27,7 @@ namespace InformationHandlerApi.Controllers
 
 				if (programs is null)
 				{
-					return new ValueTask<ActionResult<StandardResponse>>(new StandardResponse
-					{
-						Code = System.Net.HttpStatusCode.InternalServerError,
-						Message = "Could not obtain workstation info"
-					});
+					return new ValueTask<ActionResult<StandardResponse>>(new StandardResponse("Could not obtain workstation info", false, System.Net.HttpStatusCode.InternalServerError));
 				}
 
 				foreach (ProgramRequest? program in programs)
@@ -44,19 +40,11 @@ namespace InformationHandlerApi.Controllers
 					_programRepository.Insert(program);
 				}
 
-                return new ValueTask<ActionResult<StandardResponse>>(new StandardResponse
-				{
-					Code = System.Net.HttpStatusCode.OK,
-					Message = "OK"
-				});
+                return new ValueTask<ActionResult<StandardResponse>>(new StandardResponse("OK", true, System.Net.HttpStatusCode.OK));
 			}
 			catch (Exception e)
 			{
-				return new ValueTask<ActionResult<StandardResponse>>(new StandardResponse
-				{
-					Code = System.Net.HttpStatusCode.InternalServerError,
-					Message = e.Message
-				});
+				return new ValueTask<ActionResult<StandardResponse>>(new StandardResponse(e.Message, false, System.Net.HttpStatusCode.InternalServerError));
 			}
 		}
 

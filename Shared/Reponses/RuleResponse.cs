@@ -1,19 +1,20 @@
 ﻿using InformationHandlerApi.Database.Models;
+using System.Net;
 using System.Text.Json.Serialization;
 
 namespace InformationHandlerApi.Business.Responses
 {
-	public class RuleResponse
+	public class RuleResponse : StandardResponse
 	{
-		public RuleResponse(bool sucess, string message, List<DbRule> rules)
+		public RuleResponse(bool success, string message, List<DbRule> rules, HttpStatusCode code)  : base(message, success, code)
 		{
-			Sucess = sucess;
+			Success = success;
 			Message = message;
 			Rules = rules;
 		}
 
-		[JsonPropertyName("Sucess")]
-		public bool Sucess { get; set; }
+		[JsonPropertyName("Success")]
+		public bool Success { get; set; }
 		
 		[JsonPropertyName("Message")]
 		public string Message { get; set; }

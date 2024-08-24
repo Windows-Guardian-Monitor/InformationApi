@@ -1,12 +1,14 @@
-﻿namespace ClientServer.Client.Operators
+﻿using ClientServer.Client.Operators.Contracts;
+
+namespace ClientServer.Client.Operators
 {
-	public class CustomSnackbarOperator
+    public class CustomSnackbarOperator : ICustomSnackbarOperator
 	{
 		public string BannerClass { get; set; } = "alert-info";
-		public bool IsVisible { get; set; }
-        public string Message { get; set; }
+		public bool IsVisible { get; set; } = false;
+		public string? Message { get; set; }
 
-        public void ShowWarningMessage(string message)
+		public void ShowWarningMessage(string message)
 		{
 			BannerClass = "alert-warning";
 			Message = message;

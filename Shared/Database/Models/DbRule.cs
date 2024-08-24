@@ -5,21 +5,25 @@ namespace InformationHandlerApi.Database.Models
 {
 	public class DbRule
 	{
-		public DbRule(List<DbRuleProgram> programs)
+		public DbRule(string name, List<DbRuleProgram> programs)
 		{
 			Programs = programs;
+			Name = name;
 		}
 
-        public DbRule()
-        {
-            
-        }
+		public DbRule()
+		{
 
-        [Key]
+		}
+
+		[Key]
 		[JsonIgnore]
 		public int Id { get; set; }
 
 		[JsonPropertyName("Programs")]
 		public List<DbRuleProgram> Programs { get; set; }
+
+		[JsonPropertyName("Name")]
+		public string Name { get; set; }
 	}
 }

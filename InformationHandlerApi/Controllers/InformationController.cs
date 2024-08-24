@@ -3,6 +3,7 @@ using InformationHandlerApi.Business.Responses;
 using InformationHandlerApi.Contracts.Repositories;
 using InformationHandlerApi.Database.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 using System.Text.Json;
 
 namespace InformationHandlerApi.Controllers
@@ -34,28 +35,16 @@ namespace InformationHandlerApi.Controllers
 
 				if (windowsWorkstation is null)
 				{
-					return new StandardResponse
-					{
-						Code = System.Net.HttpStatusCode.InternalServerError,
-						Message = "Could not obtain workstation info"
-					};
+					return new StandardResponse("Could not obtain workstation info", false, HttpStatusCode.InternalServerError);
 				}
 
 				await _windowsWorkstationRepository.Upsert(windowsWorkstation);
 
-				return new StandardResponse
-				{
-					Code = System.Net.HttpStatusCode.OK,
-					Message = "OK"
-				};
+				return new StandardResponse("OK", true, HttpStatusCode.OK);
 			}
 			catch (Exception e)
 			{
-				return new StandardResponse
-				{
-					Code = System.Net.HttpStatusCode.InternalServerError,
-					Message = e.Message
-				};
+				return new StandardResponse(e.Message, false, HttpStatusCode.InternalServerError);
 			}
 		}
 

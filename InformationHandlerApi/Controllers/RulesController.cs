@@ -1,7 +1,9 @@
-﻿using InformationHandlerApi.Business.Responses;
+﻿using ClientServer.Shared.Requests;
+using InformationHandlerApi.Business.Responses;
 using InformationHandlerApi.Contracts.Repositories;
 using InformationHandlerApi.Database.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 using System.Text.Json;
 
 namespace InformationHandlerApi.Controllers
@@ -22,32 +24,25 @@ namespace InformationHandlerApi.Controllers
 		{
 			try
 			{
-				var programs = JsonSerializer.Deserialize<List<DbRuleProgram>>(serializedProgramList);
+				var createRuleRequest = JsonSerializer.Deserialize<CreateRuleRequest>(serializedProgramList);
 
-				if (programs is null)
+				if (createRuleRequest is null)
 				{
-					return new ValueTask<ActionResult<StandardResponse>>(new StandardResponse
-					{
-						Code = System.Net.HttpStatusCode.InternalServerError,
-						Message = "Could not obtain workstation info"
-					});
+					return new ValueTask<ActionResult<StandardResponse>>(new StandardResponse("Não foi possível obter as regras enviadas na requisição", false, HttpStatusCode.BadRequest));
 				}
 
-				_ruleRepository.Insert(new DbRule(programs));
-
-				return new ValueTask<ActionResult<StandardResponse>>(new StandardResponse
+				if (createRuleRequest.SelectedPrograms.Count is 0)
 				{
-					Code = System.Net.HttpStatusCode.OK,
-					Message = "OK"
-				});
+					return new ValueTask<ActionResult<StandardResponse>>(new StandardResponse("Não há programas cadastrados nesta regra", false, HttpStatusCode.BadRequest));
+				}
+
+				_ruleRepository.Insert(new DbRule(createRuleRequest.RuleName, createRuleRequest.SelectedPrograms));
+
+				return new ValueTask<ActionResult<StandardResponse>>(StandardResponse.CreateOkResponse());
 			}
 			catch (Exception e)
 			{
-				return new ValueTask<ActionResult<StandardResponse>>(new StandardResponse
-				{
-					Code = System.Net.HttpStatusCode.InternalServerError,
-					Message = e.Message
-				});
+				return new ValueTask<ActionResult<StandardResponse>>(StandardResponse.CreateInternalServerErrorResponse(e.Message));
 			}
 		}
 
@@ -60,11 +55,45 @@ namespace InformationHandlerApi.Controllers
 
 				var rules = _ruleRepository.GetAll();
 
-				return new ValueTask<ActionResult<RuleResponse>>(new RuleResponse(true, string.Empty, rules));
+				var response = new RuleResponse(true, string.Empty, rules, HttpStatusCode.OK);
+
+				return new ValueTask<ActionResult<RuleResponse>>(response);
 			}
 			catch (Exception e)
 			{
-				return new ValueTask<ActionResult<RuleResponse>>(new RuleResponse(false, e.Message, new List<DbRule>()));
+				return new ValueTask<ActionResult<RuleResponse>>(new RuleResponse(false, e.Message, new List<DbRule>(), HttpStatusCode.InternalServerError));
+			}
+		}
+
+		[HttpPost("Delete")]
+		public ValueTask<ActionResult<StandardResponse>> DeletedRuleById ([FromBody] byte[] serializedDeleteRuleRequest)
+		{
+			try
+			{
+				var deleteRuleRequest = JsonSerializer.Deserialize<DeleteRuleRequest>(serializedDeleteRuleRequest);
+
+				_ruleRepository.DeleteById(deleteRuleRequest.RuleIdToDelete);
+
+				return new ValueTask<ActionResult<StandardResponse>>(StandardResponse.CreateOkResponse());
+			}
+			catch (Exception e)
+			{
+				return new ValueTask<ActionResult<StandardResponse>>(StandardResponse.CreateInternalServerErrorResponse(e.Message));
+			}
+		}
+
+		[HttpGet(Name = "GetGeneralRules")]
+		public RuleResponse Get()
+		{
+			try
+			{
+				var rules = _ruleRepository.GetAll();
+
+				return new RuleResponse(true, string.Empty, rules, HttpStatusCode.OK);
+			}
+			catch (Exception e)
+			{
+				return new RuleResponse(false, e.Message, null, HttpStatusCode.InternalServerError);
 			}
 		}
 	}

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace InformationHandlerApi.Database.Models
 {
-    public class DbDiskInfo : IDiskInfo
+	public class DbDiskInfo : IDiskInfo
     {
         [Key]
         public int Id { get; set; }

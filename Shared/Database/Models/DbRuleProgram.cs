@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
 namespace InformationHandlerApi.Database.Models
@@ -17,7 +19,7 @@ namespace InformationHandlerApi.Database.Models
             
         }
 
-        [Key]
+		[Key]
 		[JsonPropertyName("Id")]
 		public int Id { get; set; }
 
@@ -29,5 +31,9 @@ namespace InformationHandlerApi.Database.Models
 
 		[JsonPropertyName("Hash")]
 		public string Hash { get; set; }
+		
+		[JsonPropertyName("Selected")]
+		[NotMapped]
+        public bool Selected { get; set; }
 	}
 }

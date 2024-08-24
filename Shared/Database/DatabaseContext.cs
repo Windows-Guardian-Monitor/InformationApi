@@ -11,9 +11,9 @@ public class DatabaseContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<DbWindowsWorkstation>(buildAction =>
+        modelBuilder.Entity<DbRule>(buildAction =>
         {
-            //buildAction.HasMany<DbDiskInfo>().WithOne(x => x.Workstation).HasForeignKey(x => x.WorkstationId).IsRequired();
+            buildAction.HasMany(r => r.Programs);
         });
 
         //modelBuilder.Entity<DbWindowsWorkstation>()

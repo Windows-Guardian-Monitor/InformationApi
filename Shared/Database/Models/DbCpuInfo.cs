@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace InformationHandlerApi.Database.Models
 {
-    public class DbCpuInfo : ICpuInfo
+	public class DbCpuInfo : ICpuInfo
     {
         [Key]
         public int CpuInfoId { get; set; }

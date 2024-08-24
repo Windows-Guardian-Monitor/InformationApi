@@ -21,6 +21,8 @@
 
   <ItemGroup>
     <Folder Include="Business\Models\" />
+    <Folder Include="Business\Responses\" />
+    <Folder Include="Contracts\" />
   </ItemGroup>
 
   <ItemGroup>

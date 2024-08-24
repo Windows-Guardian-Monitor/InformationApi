@@ -1,4 +1,4 @@
-﻿@using ClientServer.Client.Models
+﻿@using InformationHandlerApi.Database.Models
 <div class="d-flex justify-content-between align-items-center p-2 border-bottom" style="background-color:@_color">
 	<div class="d-flex flex-column flex-grow-1">
 		<span class="flex-grow-1">@Program.Name</span>
@@ -10,7 +10,7 @@
 
 @code {
 	[Parameter]
-	public UiProgram Program { get; set; }
+	public DbRuleProgram Program { get; set; }
 
 	const string _select = "Marcar";
 	const string _unselect = "Desmarcar";

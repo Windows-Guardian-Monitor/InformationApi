@@ -23,5 +23,11 @@ namespace InformationHandlerApi.Database.Repositories
 			_context.Rules.Add(dbRule);
 			_context.SaveChanges();
 		}
+
+		public void DeleteById(int id)
+		{
+			_context.Rules.Remove(new DbRule { Id = id });
+			_context.SaveChanges();
+		}
 	}
 }
