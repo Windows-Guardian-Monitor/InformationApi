@@ -10,6 +10,7 @@
 
 <PageTitle>Criação de Regras</PageTitle>
 @inject HttpClient Http
+@inject NavigationManager NavigationManager
 @inject ICustomSnackbarOperator _customSnackbarOperator;
 @inject PageNavigationHelper _pageNavigationHelper
 <ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_customSnackbarOperator" />
@@ -81,7 +82,13 @@ else
 				return;
 			}
 
-			_customSnackbarOperator.ShowInformationMessage("Regra atualizada com sucesso");
+			_customSnackbarOperator.ShowInformationMessage("Regra atualizada com sucesso", "Você será redirecionado(a) à página de regras gerais em instantes");
+
+			StateHasChanged();
+
+			await (new PeriodicTimer(TimeSpan.FromSeconds(3))).WaitForNextTickAsync();
+
+			NavigationManager.NavigateTo("rules");
 		}
 		catch (Exception e)
 		{

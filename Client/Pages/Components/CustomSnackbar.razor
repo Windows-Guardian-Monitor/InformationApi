@@ -5,7 +5,8 @@
 @if (SnackbarOperator.IsVisible)
 {
 	<div class="alert @SnackbarOperator.BannerClass alert-dismissible fade show" role="alert">
-		@SnackbarOperator.Message
+		<p>@SnackbarOperator.Message</p>
+		<p class="small text-muted">@SnackbarOperator.SubMessage</p>
 		<button type="button" class="btn-close" @onclick="Hide" aria-label="Close"></button>
 	</div>
 }

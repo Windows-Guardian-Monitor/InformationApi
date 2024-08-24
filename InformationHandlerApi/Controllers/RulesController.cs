@@ -5,7 +5,6 @@ using InformationHandlerApi.Business.Responses;
 using InformationHandlerApi.Contracts.Repositories;
 using InformationHandlerApi.Database.Models;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
 
