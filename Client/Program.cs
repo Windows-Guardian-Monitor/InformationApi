@@ -1,3 +1,5 @@
+global using Microsoft.AspNetCore.Components.Authorization;
+using ClientServer.Client.Authorization;
 using ClientServer.Client.Operators;
 using ClientServer.Client.Operators.Contracts;
 using ClientServer.Client.Services;
@@ -6,7 +8,7 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
 namespace ClientServer.Client
 {
-	public class Program
+    public class Program
     {
         public static async Task Main(string[] args)
         {
@@ -20,6 +22,8 @@ namespace ClientServer.Client
             builder.Services.AddTransient<ICustomSnackbarOperator, CustomSnackbarOperator>();
             builder.Services.AddSingleton<PageNavigationHelper>();
 
+            builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
+            builder.Services.AddAuthorizationCore();
 
 			await builder.Build().RunAsync();
         }
