@@ -11,13 +11,15 @@ public class DatabaseContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<DbRule>(buildAction =>
-        {
-            buildAction.HasMany(r => r.Programs);
-        });
+        //modelBuilder.Entity<DbRule>()
+        //    .HasMany(r => r.Programs)
+        //    .WithMany(p => p.Rules)
+        //    .UsingEntity<Dictionary<string, object>>(
+        //    "RuleProgram",
+        //    j => j.HasOne<DbRuleProgram>().WithMany().HasForeignKey("ProgramId"),
+        //    j => j.HasOne<DbRule>().WithMany().HasForeignKey("RuleId"));
 
-        //modelBuilder.Entity<DbWindowsWorkstation>()
-        //    .HasOne(x => x.CpuInfo).WithOne(x => x.Workstation).HasForeignKey<DbCpuInfo>(x => x.WorkstationId).IsRequired();
+        modelBuilder.Entity<DbRule>(r => r.HasMany(r => r.Programs).WithOne(p => p.ForeignRule));
     }
 
     public DbSet<DbWindowsWorkstation> Workstations { get; set; }

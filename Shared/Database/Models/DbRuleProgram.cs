@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
@@ -21,7 +20,7 @@ namespace InformationHandlerApi.Database.Models
 
 		[Key]
 		[JsonPropertyName("Id")]
-		public int Id { get; set; }
+		public int ProgramId { get; set; }
 
 		[JsonPropertyName("Path")]
 		public string Path { get; set; }
@@ -35,5 +34,11 @@ namespace InformationHandlerApi.Database.Models
 		[JsonPropertyName("Selected")]
 		[NotMapped]
         public bool Selected { get; set; }
-	}
+
+
+
+		[ForeignKey("RuleId")]
+		[JsonIgnore]
+        public DbRule ForeignRule { get; set; }
+    }
 }

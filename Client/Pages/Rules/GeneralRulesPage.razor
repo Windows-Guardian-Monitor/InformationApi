@@ -30,7 +30,7 @@ else
 			<div class="card" style="margin:10px">
 				<ClientServer.Client.Pages.Rules.RuleItems.RuleToEditOrRemove Rule="@item"></ClientServer.Client.Pages.Rules.RuleItems.RuleToEditOrRemove>
 				<div class="card-footer d-flex justify-content-end border-top-0 bg-white">
-					<Button class="btn btn-danger me-2" @onclick="() => ShowDeleteConfirmation(item.Id)">
+					<Button class="btn btn-danger me-2" @onclick="() => ShowDeleteConfirmation(item.RuleId)">
 						<i class="bi bi-trash"></i> Apagar
 					</Button>
 					<Button class="btn btn-warning" @onclick="UpdateRule">
