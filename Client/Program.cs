@@ -6,6 +6,7 @@ using ClientServer.Client.Operators.Contracts;
 using ClientServer.Client.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using ClientServer.Client.Services.Contracts;
 
 namespace ClientServer.Client
 {
@@ -27,6 +28,8 @@ namespace ClientServer.Client
             builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
             builder.Services.AddAuthorizationCore();
             builder.Services.AddBlazoredLocalStorage();
+            //My creation
+            builder.Services.AddScoped<IUserSessionService, UserSessionService>();
             //End
 
 			await builder.Build().RunAsync();

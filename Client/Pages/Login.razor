@@ -1,8 +1,8 @@
 ﻿@page "/login"
+@using ClientServer.Client.Services.Contracts
 @using ClientServer.Shared.DataTransferObjects
 @inject HttpClient Http
-@inject AuthenticationStateProvider AuthStateProvider
-@inject ILocalStorageService LocalStorage
+@inject IUserSessionService _userSessionService
 <h3>Login</h3>
 
 <EditForm Model="user" OnSubmit="HandleLogin">
@@ -28,9 +28,7 @@
 
 			Console.WriteLine(token);
 
-			await LocalStorage.SetItemAsync("token", token);
-
-			await AuthStateProvider.GetAuthenticationStateAsync();
+			await _userSessionService.Login(token);
 		}
 		catch (Exception e)
 		{

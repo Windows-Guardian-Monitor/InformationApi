@@ -1,6 +1,6 @@
-﻿@inject NavigationManager NavigationManager
-@inject ILocalStorageService LocalStorage
-@inject AuthenticationStateProvider AuthStateProvider
+﻿@using ClientServer.Client.Services.Contracts
+@inject NavigationManager NavigationManager
+@inject IUserSessionService _userSessionService
 
 <AuthorizeView>
 	<Authorized>
@@ -19,7 +19,6 @@
 
 	async Task Logout()
 	{
-		await LocalStorage.RemoveItemAsync("token");
-		await AuthStateProvider.GetAuthenticationStateAsync();
+		await _userSessionService.Logout();
 	}
 }
