@@ -17,7 +17,7 @@ namespace InformationHandlerApi.Database.Models
 		}
 
 		[Key]
-		[JsonIgnore]
+		[JsonPropertyName("RuleId")]
 		public int RuleId { get; set; }
 
 		[JsonPropertyName("Programs")]

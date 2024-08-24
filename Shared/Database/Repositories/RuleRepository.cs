@@ -26,7 +26,9 @@ namespace InformationHandlerApi.Database.Repositories
 
 		public void DeleteById(int id)
 		{
-			_context.Rules.Remove(new DbRule { RuleId = id });
+			var rule = new DbRule { RuleId = id };
+			_context.Rules.Attach(rule);
+			_context.Rules.Remove(rule);
 			_context.SaveChanges();
 		}
 	}

@@ -8,8 +8,12 @@ namespace ClientServer.Shared.Requests
 		{
 			RuleIdToDelete = ruleIdToDelete;
 		}
+        public DeleteRuleRequest()
+        {
+            
+        }
 
-		[JsonPropertyName("RuleIdToDelete")]
+        [JsonPropertyName("RuleIdToDelete")]
 		public int RuleIdToDelete { get; set; }
 	}
 }

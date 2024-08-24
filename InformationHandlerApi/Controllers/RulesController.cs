@@ -36,6 +36,11 @@ namespace InformationHandlerApi.Controllers
 					return new ValueTask<ActionResult<StandardResponse>>(new StandardResponse("Não há programas cadastrados nesta regra", false, HttpStatusCode.BadRequest));
 				}
 
+				foreach (var item in createRuleRequest.SelectedPrograms)
+				{
+					item.ProgramId = 0;
+				}
+
 				_ruleRepository.Insert(new DbRule(createRuleRequest.RuleName, createRuleRequest.SelectedPrograms));
 
 				return new ValueTask<ActionResult<StandardResponse>>(StandardResponse.CreateOkResponse());
@@ -66,7 +71,7 @@ namespace InformationHandlerApi.Controllers
 		}
 
 		[HttpPost("Delete")]
-		public ValueTask<ActionResult<StandardResponse>> DeletedRuleById ([FromBody] byte[] serializedDeleteRuleRequest)
+		public ValueTask<ActionResult<StandardResponse>> DeletedRuleById([FromBody] byte[] serializedDeleteRuleRequest)
 		{
 			try
 			{
