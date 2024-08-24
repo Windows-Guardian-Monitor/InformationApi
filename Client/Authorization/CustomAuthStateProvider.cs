@@ -1,25 +1,43 @@
-﻿using System.Security.Claims;
+﻿using System.Net.Http.Headers;
+using System.Security.Claims;
 using System.Text.Json;
 
 namespace ClientServer.Client.Authorization;
 
 public class CustomAuthStateProvider : AuthenticationStateProvider
 {
-    public override Task<AuthenticationState> GetAuthenticationStateAsync()
-    {
-        var token = "eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTUxMiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiVG9ueSBTdGFyayIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6Iklyb24gTWFuIiwiZXhwIjozMTY4NTQwMDAwfQ.IbVQa1lNYYOzwso69xYfsMOHnQfO3VLvVqV2SOXS7sTtyyZ8DEf5jmmwz2FGLJJvZnQKZuieHnmHkg7CGkDbvA";
+	private readonly ILocalStorageService _localStorageService;
+	private readonly HttpClient _httpClient;
 
-        //var identity = new ClaimsIdentity(); //empty = not authorized
-        var identity = new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt");
+	public CustomAuthStateProvider(ILocalStorageService localStorageService, HttpClient httpClient)
+	{
+		_localStorageService = localStorageService;
+		_httpClient = httpClient;
+	}
 
-        var user = new ClaimsPrincipal(identity);
+	public override async Task<AuthenticationState> GetAuthenticationStateAsync()
+	{
+		var token = await _localStorageService.GetItemAsStringAsync("token");
 
-        var state = new AuthenticationState(user);
+		var identity = new ClaimsIdentity(); //empty = not authorized
+		_httpClient.DefaultRequestHeaders.Authorization = null;
 
-        NotifyAuthenticationStateChanged(Task.FromResult(state)); //notify that changed
+		if (string.IsNullOrWhiteSpace(token) is false)
+		{
+			identity = new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt");
+			_httpClient.DefaultRequestHeaders.Authorization = 
+				new AuthenticationHeaderValue("Bearer", token.Replace("\"", ""));
 
-        return Task.FromResult(state);
-    }
+		}
+
+		var user = new ClaimsPrincipal(identity);
+
+		var state = new AuthenticationState(user);
+
+		NotifyAuthenticationStateChanged(Task.FromResult(state)); //notify specific components that something regarding user session has changed
+
+		return state;
+	}
 
 	private static IEnumerable<Claim> ParseClaimsFromJwt(string jwt)
 	{

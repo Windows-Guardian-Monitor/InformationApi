@@ -1,4 +1,5 @@
 global using Microsoft.AspNetCore.Components.Authorization;
+global using Blazored.LocalStorage;
 using ClientServer.Client.Authorization;
 using ClientServer.Client.Operators;
 using ClientServer.Client.Operators.Contracts;
@@ -22,8 +23,11 @@ namespace ClientServer.Client
             builder.Services.AddTransient<ICustomSnackbarOperator, CustomSnackbarOperator>();
             builder.Services.AddSingleton<PageNavigationHelper>();
 
+            //Authorization
             builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
             builder.Services.AddAuthorizationCore();
+            builder.Services.AddBlazoredLocalStorage();
+            //End
 
 			await builder.Build().RunAsync();
         }
