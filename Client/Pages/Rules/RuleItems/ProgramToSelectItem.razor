@@ -33,4 +33,25 @@
 		_buttonText = _unselect;
 		// _color = "Pink";
 	}
+
+	void UpdateSelect()
+	{
+		if (Program.Selected)
+		{
+			Program.Selected = true;
+			_color = "#89CFF0";
+			_buttonText = _unselect;
+			return;
+		}
+
+		Program.Selected = false;
+		_color = string.Empty;
+		_buttonText = _select;
+	}
+
+	protected override void OnInitialized()
+	{
+		UpdateSelect();
+		base.OnInitialized();
+	}
 }

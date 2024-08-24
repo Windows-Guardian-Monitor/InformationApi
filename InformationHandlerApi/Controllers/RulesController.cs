@@ -1,8 +1,11 @@
-﻿using ClientServer.Shared.Requests;
+﻿using ClientServer.Shared.Reponses;
+using ClientServer.Shared.Requests;
+using ClientServer.Shared.Requests.Contracts;
 using InformationHandlerApi.Business.Responses;
 using InformationHandlerApi.Contracts.Repositories;
 using InformationHandlerApi.Database.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
 
@@ -13,27 +16,41 @@ namespace InformationHandlerApi.Controllers
 	public class RulesController : Controller
 	{
 		private readonly IRuleRepository _ruleRepository;
+		private readonly IProgramRepository _programRepository;
 
-		public RulesController(IRuleRepository ruleRepository)
+		public RulesController(IRuleRepository ruleRepository, IProgramRepository programRepository)
 		{
 			_ruleRepository = ruleRepository;
+			_programRepository = programRepository;
+		}
+
+		private (bool, StandardResponse?) Validate(IAddOrUpdateRuleRequest addOrUpdateRuleRequest)
+		{
+			if (addOrUpdateRuleRequest is null)
+			{
+				return (false, new StandardResponse("Não foi possível obter as regras enviadas na requisição", false, HttpStatusCode.BadRequest));
+			}
+
+			if (addOrUpdateRuleRequest.SelectedPrograms.Count is 0)
+			{
+				return (false, new StandardResponse("Não há programas cadastrados nesta regra", false, HttpStatusCode.BadRequest));
+			}
+
+			return (true, null);
 		}
 
 		[HttpPost("Create")]
-		public ValueTask<ActionResult<StandardResponse>> CreateRules([FromBody] byte[] serializedProgramList)
+		public StandardResponse CreateRules([FromBody] byte[] serializedProgramList)
 		{
 			try
 			{
 				var createRuleRequest = JsonSerializer.Deserialize<CreateRuleRequest>(serializedProgramList);
 
-				if (createRuleRequest is null)
-				{
-					return new ValueTask<ActionResult<StandardResponse>>(new StandardResponse("Não foi possível obter as regras enviadas na requisição", false, HttpStatusCode.BadRequest));
-				}
+				var (valid, response) = Validate(createRuleRequest);
 
-				if (createRuleRequest.SelectedPrograms.Count is 0)
+				if (valid is false)
 				{
-					return new ValueTask<ActionResult<StandardResponse>>(new StandardResponse("Não há programas cadastrados nesta regra", false, HttpStatusCode.BadRequest));
+					return response;
 				}
 
 				foreach (var item in createRuleRequest.SelectedPrograms)
@@ -43,30 +60,76 @@ namespace InformationHandlerApi.Controllers
 
 				_ruleRepository.Insert(new DbRule(createRuleRequest.RuleName, createRuleRequest.SelectedPrograms));
 
-				return new ValueTask<ActionResult<StandardResponse>>(StandardResponse.CreateOkResponse());
+				return StandardResponse.CreateOkResponse();
 			}
 			catch (Exception e)
 			{
-				return new ValueTask<ActionResult<StandardResponse>>(StandardResponse.CreateInternalServerErrorResponse(e.Message));
+				return StandardResponse.CreateInternalServerErrorResponse(e.Message);
+			}
+		}
+
+		[HttpPost("Update")]
+		public StandardResponse UpdateRules([FromBody] byte[] serializedProgramList)
+		{
+			try
+			{
+				var createRuleRequest = JsonSerializer.Deserialize<UpdateRuleRequest>(serializedProgramList);
+
+				var (valid, response) = Validate(createRuleRequest);
+
+				if (valid is false)
+				{
+					return response;
+				}
+
+				foreach (var item in createRuleRequest.SelectedPrograms)
+				{
+					item.ProgramId = 0;
+				}
+
+				_ruleRepository.DeleteById(createRuleRequest.RuleId);
+
+				_ruleRepository.Insert(new DbRule(createRuleRequest.RuleName, createRuleRequest.SelectedPrograms));
+
+				return StandardResponse.CreateOkResponse();
+			}
+			catch (Exception e)
+			{
+				return StandardResponse.CreateInternalServerErrorResponse(e.Message);
 			}
 		}
 
 		[HttpPost("Acquire")]
-		public ValueTask<ActionResult<RuleResponse>> GetRules([FromBody] byte[] serializedMachineUuid)
+		public RuleWithSelectedProgramsResponse GetRules([FromBody] byte[] serializedGetRuleByIdRequest)
 		{
 			try
 			{
-				var uuid = JsonSerializer.Deserialize<string>(serializedMachineUuid);
+				var getRuleByIdRequest = JsonSerializer.Deserialize<GetRuleByIdRequest>(serializedGetRuleByIdRequest);
 
-				var rules = _ruleRepository.GetAll();
+				var rule = _ruleRepository.GetById(getRuleByIdRequest.RuleId);
 
-				var response = new RuleResponse(true, string.Empty, rules, HttpStatusCode.OK);
+				var dbPrograms = _programRepository.GetAll();
 
-				return new ValueTask<ActionResult<RuleResponse>>(response);
+				var businessPrograms = dbPrograms.Select(p => new DbRuleProgram(p.Path, p.Name, p.Hash)).ToList();
+
+				foreach (var item in rule.Programs)
+				{
+					foreach (var programToSelect in businessPrograms)
+					{
+						if (programToSelect.Hash.Equals(item.Hash, StringComparison.OrdinalIgnoreCase))
+						{
+							programToSelect.Selected = true;
+							break;
+						}
+					}
+				}
+
+				return new RuleWithSelectedProgramsResponse(rule.Name, businessPrograms, rule.RuleId, string.Empty, true, HttpStatusCode.OK);
+
 			}
 			catch (Exception e)
 			{
-				return new ValueTask<ActionResult<RuleResponse>>(new RuleResponse(false, e.Message, new List<DbRule>(), HttpStatusCode.InternalServerError));
+				return new RuleWithSelectedProgramsResponse(string.Empty, null, 0, e.Message, false, HttpStatusCode.InternalServerError);
 			}
 		}
 

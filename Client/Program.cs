@@ -1,5 +1,6 @@
 using ClientServer.Client.Operators;
 using ClientServer.Client.Operators.Contracts;
+using ClientServer.Client.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
@@ -17,6 +18,8 @@ namespace ClientServer.Client
 			builder.Services.AddBlazorBootstrap();
 
             builder.Services.AddTransient<ICustomSnackbarOperator, CustomSnackbarOperator>();
+            builder.Services.AddSingleton<PageNavigationHelper>();
+
 
 			await builder.Build().RunAsync();
         }

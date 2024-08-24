@@ -1,8 +1,9 @@
-﻿using InformationHandlerApi.Database.Models;
+﻿using ClientServer.Shared.Requests.Contracts;
+using InformationHandlerApi.Database.Models;
 
 namespace ClientServer.Shared.Requests
 {
-	public class CreateRuleRequest
+	public class CreateRuleRequest : IAddOrUpdateRuleRequest
 	{
 		public CreateRuleRequest(string ruleName, List<DbRuleProgram> selectedPrograms)
 		{

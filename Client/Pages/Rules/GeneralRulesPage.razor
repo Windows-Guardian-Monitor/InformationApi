@@ -1,19 +1,25 @@
 ﻿@page "/rules"
 @using System.Text.Json
 @using ClientServer.Client.Operators.Contracts
+@using ClientServer.Client.Pages.Rules.RuleItems
+@using ClientServer.Client.Services
+@using ClientServer.Shared.Reponses
 @using ClientServer.Shared.Requests
 @using InformationHandlerApi.Business.Responses
 @using InformationHandlerApi.Contracts.Repositories
 @using InformationHandlerApi.Database.Models
-@inject ICustomSnackbarOperator _customSnackbarOperator;
 @inject HttpClient Http
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsRuntime
+@inject ICustomSnackbarOperator _customSnackbarOperator
+@inject PageNavigationHelper _pageNavigationHelper
 <PageTitle>Regras Gerais</PageTitle>
 <h3>Regras Gerais</h3>
 <ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_customSnackbarOperator" />
 @if (ShowConfirmation)
 {
-	<ClientServer.Client.Pages.Components.Confirmation.CustomMBox Title="Delete Confirmation"
-																  Message="Are you sure you want to delete this item?"
+	<ClientServer.Client.Pages.Components.Confirmation.CustomMBox Title="Confirmar deleção de regra"
+																  Message="Tem certeza que deseja apagar esta regra?"
 																  OnConfirm="DeleteRule"
 																  OnCancel="CancelAction" />
 }
@@ -28,12 +34,12 @@ else
 		@foreach (var item in _rules)
 		{
 			<div class="card" style="margin:10px">
-				<ClientServer.Client.Pages.Rules.RuleItems.RuleToEditOrRemove Rule="@item"></ClientServer.Client.Pages.Rules.RuleItems.RuleToEditOrRemove>
+				<RuleWithProgramListItem Rule="@item"></RuleWithProgramListItem>
 				<div class="card-footer d-flex justify-content-end border-top-0 bg-white">
 					<Button class="btn btn-danger me-2" @onclick="() => ShowDeleteConfirmation(item.RuleId)">
 						<i class="bi bi-trash"></i> Apagar
 					</Button>
-					<Button class="btn btn-warning" @onclick="UpdateRule">
+					<Button class="btn btn-warning" @onclick="() => UpdateRule(item.RuleId)">
 						<i class="bi bi-pencil"></i> Atualizar
 					</Button>
 				</div>
@@ -69,17 +75,16 @@ else
 
 			var response = await Http.PostAsJsonAsync(url, JsonSerializer.SerializeToUtf8Bytes(deleteRuleRequest));
 
-			if (response.IsSuccessStatusCode)
-			{
-				_customSnackbarOperator.ShowInformationMessage("Regra apagada com sucesso");
-				await (new PeriodicTimer(TimeSpan.FromSeconds(2))).WaitForNextTickAsync();
-				//TODO RELOAD PAGE
-				return;
-			}
-
 			var content = await response.Content.ReadAsStringAsync();
 
 			var standardResponse = JsonSerializer.Deserialize<StandardResponse>(content);
+
+			if (standardResponse.Success)
+			{
+				_customSnackbarOperator.ShowInformationMessage("Regra apagada com sucesso");
+				_rules.Remove(_rules.FirstOrDefault(r => r.RuleId == _id));
+				return;
+			}
 
 			_customSnackbarOperator.ShowErrorMessage(standardResponse.Message);
 		}
@@ -87,11 +92,48 @@ else
 		{
 			_customSnackbarOperator.ShowErrorMessage(e.Message);
 		}
+		finally
+		{
+			_id = 0;
+		}
 	}
 
-	private async Task UpdateRule()
+	private async Task UpdateRule(int id)
 	{
+		try
+		{
+			var getRuleByIdRequest = new GetRuleByIdRequest(id);
 
+			var url = $"{InformationHandler.GetUrl()}{endpoint}/Acquire";
+
+			var rawResponse = await Http.PostAsJsonAsync(url, JsonSerializer.SerializeToUtf8Bytes(getRuleByIdRequest));
+
+			var ruleWithSelectedProgramsResponse = JsonSerializer.Deserialize<RuleWithSelectedProgramsResponse>(await rawResponse.Content.ReadAsStringAsync());
+
+			if (ruleWithSelectedProgramsResponse is null)
+			{
+				_customSnackbarOperator.ShowErrorMessage("Houve um erro ao tentar atualizar a regra");
+				return;
+			}
+
+			if (ruleWithSelectedProgramsResponse?.Success is false)
+			{
+				_customSnackbarOperator.ShowErrorMessage(ruleWithSelectedProgramsResponse.Message);
+				return;
+			}
+
+			var identifier = _pageNavigationHelper.AddValue<RuleWithSelectedProgramsResponse>(ruleWithSelectedProgramsResponse);
+
+			var pageUrl = $"update_rule/{identifier}";
+
+			NavigationManager.NavigateTo(pageUrl, false);
+
+			//await JsRuntime.InvokeVoidAsync("open", pageUrl);
+		}
+		catch (Exception e)
+		{
+			_customSnackbarOperator.ShowErrorMessage(e.Message);
+		}
 	}
 
 	private void CancelAction()

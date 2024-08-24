@@ -7,5 +7,6 @@ namespace InformationHandlerApi.Contracts.Repositories
         void Insert(DbRule dbRule);
         List<DbRule> GetAll();
         void DeleteById(int id);
+        DbRule GetById(int id);
 	}
 }

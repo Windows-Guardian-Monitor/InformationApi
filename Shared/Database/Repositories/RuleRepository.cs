@@ -31,5 +31,10 @@ namespace InformationHandlerApi.Database.Repositories
 			_context.Rules.Remove(rule);
 			_context.SaveChanges();
 		}
+
+		public DbRule GetById(int id)
+		{
+			return _context.Rules.Include(r => r.Programs).FirstOrDefault(r => r.RuleId == id);
+		}
 	}
 }

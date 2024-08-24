@@ -31,6 +31,7 @@ namespace InformationHandlerApi.Database.Models
 		[JsonPropertyName("Hash")]
 		public string Hash { get; set; }
 		
+
 		[JsonPropertyName("Selected")]
 		[NotMapped]
         public bool Selected { get; set; }
