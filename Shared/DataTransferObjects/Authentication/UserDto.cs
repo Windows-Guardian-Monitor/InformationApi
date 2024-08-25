@@ -1,9 +1,9 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace ClientServer.Shared.DataTransferObjects
+namespace ClientServer.Shared.DataTransferObjects.Authentication
 {
-	public class UserLoginDto
-	{
+    public class UserDto
+    {
         [JsonPropertyName("UserName")]
         public string UserName { get; set; } = string.Empty;
 

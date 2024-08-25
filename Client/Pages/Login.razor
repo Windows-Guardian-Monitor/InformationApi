@@ -1,6 +1,6 @@
 ﻿@page "/login"
 @using ClientServer.Client.Services.Contracts
-@using ClientServer.Shared.DataTransferObjects
+@using ClientServer.Shared.DataTransferObjects.Authentication
 @inject HttpClient Http
 @inject IUserSessionService _userSessionService
 <h3>Login</h3>
@@ -16,7 +16,7 @@
 </EditForm>
 
 @code {
-	UserLoginDto user = new UserLoginDto();
+	UserDto user = new UserDto();
 
 	async Task HandleLogin()
 	{
