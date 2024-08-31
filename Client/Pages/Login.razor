@@ -1,18 +1,23 @@
 ﻿@page "/login"
+@using ClientServer.Client.Operators.Contracts
 @using ClientServer.Client.Services.Contracts
 @using ClientServer.Shared.DataTransferObjects.Authentication
+@using System.Text.Json
+@using ClientServer.Shared.Reponses
 @inject HttpClient Http
 @inject IUserSessionService _userSessionService
+@inject ICustomSnackbarOperator _snackbarOperator
+@inject NavigationManager NavigationManager
 <h3>Login</h3>
-
+<ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_snackbarOperator" />
 <EditForm Model="user" OnSubmit="HandleLogin">
-	<label for="userName">Name</label>
+	<label for="userName">Nome de usuário</label>
 	<InputText id="username" @bind-Value="user.UserName" />
 
-	<label for="password">Password</label>
+	<label for="password">Senha</label>
 	<InputText id="password" @bind-Value="user.Password" type="password" />
 
-	<Button Type="ButtonType.Submit" Class="btn btn-primary">Do it!</Button>
+	<Button Type="ButtonType.Submit" Class="btn btn-primary">Entrar</Button>
 </EditForm>
 
 @code {
@@ -22,17 +27,25 @@
 	{
 		try
 		{
-			var result = await Http.PostAsJsonAsync("https://localhost:7102/api/auth", user);
+			var result = await Http.PostAsJsonAsync("https://localhost:7102/auth/Login", user);
 
-			var token = await result.Content.ReadAsStringAsync();
+			var json = await result.Content.ReadAsStringAsync();
 
-			Console.WriteLine(token);
+			var loginResponse = JsonSerializer.Deserialize<LoginResponse>(json);
 
-			await _userSessionService.Login(token);
+			if (loginResponse.Success is false)
+			{
+				_snackbarOperator.ShowErrorMessage(loginResponse.Message);
+				return;
+			}
+
+			await _userSessionService.Login(loginResponse.JwtToken);
+
+			NavigationManager.NavigateTo("/");
 		}
 		catch (Exception e)
 		{
-			Console.WriteLine(e.Message);
+			_snackbarOperator.ShowErrorMessage(e.Message);
 		}
 	}
 }

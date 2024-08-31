@@ -1,5 +1,15 @@
 ﻿@page "/"
+@using ClientServer.Client.BackgroundServices
+
+@inject StartupService _startupService
 
 <PageTitle>Home</PageTitle>
 
 <h1>Seja bem vindo(a) ao Gerenciador Endpoint Protection</h1>
+
+@code{
+	protected override async Task OnInitializedAsync()
+	{
+		await _startupService.SetUpApplication();
+	}
+}

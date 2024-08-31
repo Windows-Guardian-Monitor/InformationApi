@@ -1,3 +1,5 @@
+using ClientServer.Shared.Contracts.Repositories;
+using ClientServer.Shared.Database.Repositories;
 using InformationHandlerApi.Contracts.Repositories;
 using InformationHandlerApi.Database;
 using InformationHandlerApi.Database.Repositories;
@@ -21,6 +23,7 @@ namespace InformationHandlerApi
             builder.Services.AddTransient<IWindowsWorkstationRepository, WindowsWorkstationRepository>();
             builder.Services.AddTransient<IProgramRepository, ProgramRepository>();
             builder.Services.AddTransient<IRuleRepository, RuleRepository>();
+            builder.Services.AddTransient<IUserRepository, UserRepository>();
         }
 
         public static void Main(string[] args)

@@ -1,4 +1,5 @@
-﻿using InformationHandlerApi.Database.Models;
+﻿using ClientServer.Shared.Database.Models.Authentication;
+using InformationHandlerApi.Database.Models;
 using Microsoft.EntityFrameworkCore;
 namespace InformationHandlerApi.Database;
 
@@ -29,4 +30,5 @@ public class DatabaseContext : DbContext
     public DbSet<DbRamNominalInfo> Rams { get; set; }
     public DbSet<DbProgram> Programs { get; set; }
     public DbSet<DbRule> Rules { get; set; }
+    public DbSet<DbUser> Users { get; set; }
 }

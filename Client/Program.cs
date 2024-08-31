@@ -7,6 +7,7 @@ using ClientServer.Client.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using ClientServer.Client.Services.Contracts;
+using ClientServer.Client.BackgroundServices;
 
 namespace ClientServer.Client
 {
@@ -23,6 +24,7 @@ namespace ClientServer.Client
 
             builder.Services.AddTransient<ICustomSnackbarOperator, CustomSnackbarOperator>();
             builder.Services.AddSingleton<PageNavigationHelper>();
+            builder.Services.AddTransient<StartupService>();
 
             //Authorization
             builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();

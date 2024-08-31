@@ -26,5 +26,6 @@ namespace InformationHandlerApi.Business.Responses
 
 		public static StandardResponse CreateOkResponse() => new StandardResponse("OK", true, HttpStatusCode.OK);
 		public static StandardResponse CreateInternalServerErrorResponse(string exceptionMessage) => new StandardResponse(exceptionMessage, false, HttpStatusCode.InternalServerError);
+		public static StandardResponse CreateBadRequest(string message) => new StandardResponse(message, false, HttpStatusCode.BadRequest);
 	}
 }
