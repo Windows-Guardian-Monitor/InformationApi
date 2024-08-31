@@ -1,5 +1,6 @@
 using ClientServer.Shared.Contracts.Repositories;
 using ClientServer.Shared.Database.Repositories;
+using InformationHandlerApi.Contracts;
 using InformationHandlerApi.Contracts.Repositories;
 using InformationHandlerApi.Database;
 using InformationHandlerApi.Database.Repositories;
@@ -20,6 +21,7 @@ namespace InformationHandlerApi
             builder.Services.AddSwaggerGen();
             builder.Services.AddHostedService<DatabaseHandlerService>();
 
+            builder.Services.AddTransient<IEmailService, EmailService>();
             builder.Services.AddTransient<IWindowsWorkstationRepository, WindowsWorkstationRepository>();
             builder.Services.AddTransient<IProgramRepository, ProgramRepository>();
             builder.Services.AddTransient<IRuleRepository, RuleRepository>();

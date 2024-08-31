@@ -23,6 +23,11 @@ namespace ClientServer.Shared.Database.Repositories
 
 		public DbUser GetUser(string userName) => _context.Users.FirstOrDefault(u => u.UserName.Equals(userName, StringComparison.OrdinalIgnoreCase));
 
-
+		public void SetUserAlreadyLoggedIn(DbUser dbUser)
+		{
+			dbUser.HasLoggedIn = true;
+			_context.Users.Update(dbUser);
+			_context.SaveChanges(true);
+		}
 	}
 }

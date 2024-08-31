@@ -7,5 +7,6 @@ namespace ClientServer.Shared.Contracts.Repositories
         void Insert(DbUser dbUser);
         bool Exists(string userName);
         DbUser GetUser(string userName);
+        void SetUserAlreadyLoggedIn(DbUser dbUser);
 	}
 }

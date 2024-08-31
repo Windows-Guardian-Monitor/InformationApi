@@ -3,29 +3,31 @@ using ClientServer.Shared.Database.Models.Authentication;
 using ClientServer.Shared.DataTransferObjects.Authentication;
 using ClientServer.Shared.Reponses;
 using InformationHandlerApi.Business.Responses;
+using InformationHandlerApi.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using PasswordGenerator;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
 
 namespace InformationHandlerApi.Controllers
 {
-	//TODO PARAR DE USAR O CAMPO ESTÁTICO E ACESSAR O BANCO DE DADOS DIRETAMENTE
 	[ApiController]
 	[Route("[controller]")]
 	public class AuthController : Controller
 	{
 		private readonly IConfiguration _configuration;
 		private readonly IUserRepository _userRepository;
+		private readonly IEmailService _emailService;
 
-		public AuthController(IConfiguration configuration, IUserRepository userRepository)
+		public AuthController(IConfiguration configuration, IUserRepository userRepository, IEmailService emailService)
 		{
 			_configuration = configuration;
 			_userRepository = userRepository;
+			_emailService = emailService;
 		}
 
 		[HttpPost("Login")]
@@ -38,28 +40,34 @@ namespace InformationHandlerApi.Controllers
 
 				if (_userRepository.Exists(userDto.UserName) is false)
 				{
-					return LoginResponse.Create(string.Empty, string.Empty, string.Empty, StandardResponse.CreateBadRequest("Usuário ou senha incorretos"));
+					return LoginResponse.Create(string.Empty, string.Empty, string.Empty, requestPasswordChange: false, StandardResponse.CreateConflict("Usuário ou senha incorretos"));
 				}
 
 				var dbUser = _userRepository.GetUser(userDto.UserName);
 
 				if (dbUser is null)
 				{
-					return LoginResponse.Create(string.Empty, string.Empty, string.Empty, StandardResponse.CreateBadRequest("Usuário ou senha incorretos"));
+					return LoginResponse.Create(string.Empty, string.Empty, string.Empty, requestPasswordChange: false, StandardResponse.CreateConflict("Usuário ou senha incorretos"));
 				}
 
 				if (VerifyPasswordHash(userDto.Password, dbUser.PasswordHash, dbUser.PasswordSalt) is false)
 				{
-					return LoginResponse.Create(string.Empty, string.Empty, string.Empty, StandardResponse.CreateBadRequest("Usuário ou senha incorretos"));
+					return LoginResponse.Create(string.Empty, string.Empty, string.Empty, requestPasswordChange: false, StandardResponse.CreateConflict("Usuário ou senha incorretos"));
 				}
 
 				token = CreateToken(dbUser);
 
-				return LoginResponse.Create(token, dbUser.UserName, dbUser.Role, StandardResponse.CreateOkResponse());
+				if (dbUser.HasLoggedIn is false)
+				{
+					_userRepository.SetUserAlreadyLoggedIn(dbUser);
+					return LoginResponse.Create(token, dbUser.UserName, dbUser.Role, requestPasswordChange: true, StandardResponse.CreateOkResponse());
+				}
+
+				return LoginResponse.Create(token, dbUser.UserName, dbUser.Role, requestPasswordChange: false, StandardResponse.CreateOkResponse());
 			}
 			catch (Exception e)
 			{
-				return LoginResponse.Create(string.Empty, string.Empty, string.Empty, StandardResponse.CreateInternalServerErrorResponse(e.Message));
+				return LoginResponse.Create(string.Empty, string.Empty, string.Empty, requestPasswordChange: false, StandardResponse.CreateInternalServerErrorResponse(e.Message));
 			}
 		}
 
@@ -90,10 +98,15 @@ namespace InformationHandlerApi.Controllers
 		{
 			try
 			{
-
 				if (_userRepository.Exists(request.UserName))
 				{
 					return new StandardResponse("Nome de usuário inválido", false, HttpStatusCode.Conflict);
+				}
+
+				if (string.IsNullOrEmpty(request.Password))
+				{
+					var createdPassword = new Password(14).IncludeLowercase().IncludeNumeric().IncludeSpecial().IncludeUppercase();
+					request.Password = createdPassword.Next();
 				}
 
 				CreatePasswordHash(request.Password, out var passwordHash, out var passwordSalt);
@@ -103,8 +116,14 @@ namespace InformationHandlerApi.Controllers
 					PasswordHash = passwordHash,
 					PasswordSalt = passwordSalt,
 					UserName = request.UserName,
-					Role = request.IsAdmin ? "Administrator" : "Common"
+					Role = request.IsAdmin ? "Administrator" : "Common",
+					Email = request.Email
 				};
+
+				if (string.IsNullOrEmpty(request.Email) is false)
+				{
+					_emailService.Send(request.Password, request.UserName, request.Email);
+				}
 
 				_userRepository.Insert(user);
 

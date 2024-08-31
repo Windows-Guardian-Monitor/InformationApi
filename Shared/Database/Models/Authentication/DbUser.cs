@@ -10,5 +10,7 @@ namespace ClientServer.Shared.Database.Models.Authentication
 		public byte[] PasswordHash { get; set; } = Array.Empty<byte>();
 		public byte[] PasswordSalt { get; set; } = Array.Empty<byte>();
         public string Role { get; set; }
+        public bool HasLoggedIn { get; set; }
+        public string Email { get; set; }
     }
 }
