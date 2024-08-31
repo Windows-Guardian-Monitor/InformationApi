@@ -38,28 +38,28 @@ namespace InformationHandlerApi.Controllers
 
 				if (_userRepository.Exists(userDto.UserName) is false)
 				{
-					return new LoginResponse(string.Empty, StandardResponse.CreateBadRequest("Usuário ou senha incorretos")) ;
+					return LoginResponse.Create(string.Empty, string.Empty, string.Empty, StandardResponse.CreateBadRequest("Usuário ou senha incorretos"));
 				}
 
 				var dbUser = _userRepository.GetUser(userDto.UserName);
 
 				if (dbUser is null)
 				{
-					return new LoginResponse(string.Empty, StandardResponse.CreateBadRequest("Usuário ou senha incorretos"));
+					return LoginResponse.Create(string.Empty, string.Empty, string.Empty, StandardResponse.CreateBadRequest("Usuário ou senha incorretos"));
 				}
 
 				if (VerifyPasswordHash(userDto.Password, dbUser.PasswordHash, dbUser.PasswordSalt) is false)
 				{
-					return new LoginResponse(string.Empty, StandardResponse.CreateBadRequest("Usuário ou senha incorretos"));
+					return LoginResponse.Create(string.Empty, string.Empty, string.Empty, StandardResponse.CreateBadRequest("Usuário ou senha incorretos"));
 				}
 
 				token = CreateToken(dbUser);
 
-				return new LoginResponse(token, StandardResponse.CreateOkResponse());
+				return LoginResponse.Create(token, dbUser.UserName, dbUser.Role, StandardResponse.CreateOkResponse());
 			}
 			catch (Exception e)
 			{
-				return new LoginResponse(string.Empty, StandardResponse.CreateInternalServerErrorResponse(e.Message));
+				return LoginResponse.Create(string.Empty, string.Empty, string.Empty, StandardResponse.CreateInternalServerErrorResponse(e.Message));
 			}
 		}
 
@@ -67,7 +67,8 @@ namespace InformationHandlerApi.Controllers
 		{
 			var claims = new List<Claim>()
 			{
-				new Claim(ClaimTypes.Name, user.UserName)
+				new Claim(ClaimTypes.Name, user.UserName),
+				new Claim(ClaimTypes.Role, user.Role)
 			};
 
 			var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value));
@@ -75,8 +76,8 @@ namespace InformationHandlerApi.Controllers
 			var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
 
 			var jwtSecurityToken = new JwtSecurityToken(
-				claims: claims, 
-				expires: DateTime.Now.AddMinutes(1),
+				claims: claims,
+				expires: DateTime.Now.AddMinutes(10),
 				signingCredentials: creds);
 
 			var jwt = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
@@ -101,9 +102,9 @@ namespace InformationHandlerApi.Controllers
 				{
 					PasswordHash = passwordHash,
 					PasswordSalt = passwordSalt,
-					UserName = request.UserName
+					UserName = request.UserName,
+					Role = request.IsAdmin ? "Administrator" : "Common"
 				};
-
 
 				_userRepository.Insert(user);
 

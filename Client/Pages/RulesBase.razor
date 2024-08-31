@@ -2,10 +2,17 @@
 <PageTitle>Regras</PageTitle>
 <h3>Regras</h3>
 
-<a class="btn btn-info" href="rules">Ver regras gerais</a>
-<Button class="btn btn-info">Ver regras por máquina</Button>
-<a class="btn btn-info"  href="create_rule">Criar regra geral</a>
-<Button class="btn btn-info">Criar regra para máquina</Button>
+<AuthorizeView>
+	<Authorized>
+		<a class="btn btn-info" href="rules">Ver regras gerais</a>
+		<Button class="btn btn-info">Ver regras por máquina</Button>
+		<a class="btn btn-info" href="create_rule">Criar regra geral</a>
+		<Button class="btn btn-info">Criar regra para máquina</Button>
+	</Authorized>
+	<NotAuthorized>
+		<ClientServer.Client.Pages.Components.AccessDenied />
+	</NotAuthorized>
+</AuthorizeView>
 
 @code {
 

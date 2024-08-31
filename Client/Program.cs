@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using ClientServer.Client.Services.Contracts;
 using ClientServer.Client.BackgroundServices;
+using Blazored.SessionStorage;
 
 namespace ClientServer.Client
 {
@@ -30,6 +31,7 @@ namespace ClientServer.Client
             builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
             builder.Services.AddAuthorizationCore();
             builder.Services.AddBlazoredLocalStorage();
+            builder.Services.AddBlazoredSessionStorage();
             //My creation
             builder.Services.AddScoped<IUserSessionService, UserSessionService>();
             //End

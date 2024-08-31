@@ -1,7 +1,9 @@
-﻿@using ClientServer.Shared.DataTransferObjects
+﻿@using ClientServer.Client.Services
+@using ClientServer.Shared.DataTransferObjects
 @using BlazorBootstrap;
 @using System.Text.Json
-@inject IJSRuntime jsRuntime
+@inject NavigationManager NavigationManager
+@inject PageNavigationHelper _pageNavigationHelper
 
 <h3>Máquinas</h3>
 
@@ -18,10 +20,12 @@
 	public SimpleWorkstationItem Workstation { get; set; }
 
 
-	public async Task OpenWorkstationPage()
+	public void OpenWorkstationPage()
 	{
-		var pageUrl = $"workstations/{Workstation.Id}";
+		var identifier = _pageNavigationHelper.AddIntegerValue(Workstation.Id);
 
-		await jsRuntime.InvokeVoidAsync("open", pageUrl, "_blank");
+		var pageUrl = $"workstations/{identifier}";
+
+		NavigationManager.NavigateTo(pageUrl, false);
 	}
 }

@@ -9,5 +9,8 @@ namespace ClientServer.Shared.DataTransferObjects.Authentication
 
         [JsonPropertyName("Password")]
         public string Password { get; set; } = string.Empty;
+
+        [JsonPropertyName("IsAdmin")]
+        public bool IsAdmin { get; set; }
     }
 }

@@ -14,39 +14,53 @@
 @inject ICustomSnackbarOperator _customSnackbarOperator
 @inject PageNavigationHelper _pageNavigationHelper
 <PageTitle>Regras Gerais</PageTitle>
-<h3>Regras Gerais</h3>
 <ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_customSnackbarOperator" />
-@if (ShowConfirmation)
-{
-	<ClientServer.Client.Pages.Components.Confirmation.CustomMBox Title="Confirmar deleção de regra"
-																  Message="Tem certeza que deseja apagar esta regra?"
-																  OnConfirm="DeleteRule"
-																  OnCancel="CancelAction" />
-}
-
-@if (_rules is null)
-{
-	<div>Carregando regras</div>
-}
-else
-{
-	<ul style="padding: 0; margin: 0; list-style: none;">
-		@foreach (var item in _rules)
+<AuthorizeView>
+	<Authorized>
+		<h3>Regras Gerais</h3>
+		@if (ShowConfirmation)
 		{
-			<div class="card" style="margin:10px">
-				<RuleWithProgramListItem Rule="@item"></RuleWithProgramListItem>
-				<div class="card-footer d-flex justify-content-end border-top-0 bg-white">
-					<Button class="btn btn-danger me-2" @onclick="() => ShowDeleteConfirmation(item.RuleId)">
-						<i class="bi bi-trash"></i> Apagar
-					</Button>
-					<Button class="btn btn-warning" @onclick="() => UpdateRule(item.RuleId)">
-						<i class="bi bi-pencil"></i> Atualizar
-					</Button>
-				</div>
-			</div>
+			<ClientServer.Client.Pages.Components.Confirmation.CustomMBox Title="Confirmar deleção de regra"
+																		  Message="Tem certeza que deseja apagar esta regra?"
+																		  OnConfirm="DeleteRule"
+																		  OnCancel="CancelAction" />
 		}
-	</ul>
-}
+		@if (_rules is null)
+		{
+			<div>Carregando regras</div>
+		}
+		else
+		{
+			@if (_rules.Count is 0)
+			{
+				<h3>Ainda não há regras cadastradas</h3>
+			}
+			else
+			{
+				<ul style="padding: 0; margin: 0; list-style: none;">
+					@foreach (var item in _rules)
+					{
+						<div class="card" style="margin:10px">
+							<RuleWithProgramListItem Rule="@item"></RuleWithProgramListItem>
+							<div class="card-footer d-flex justify-content-end border-top-0 bg-white">
+								<Button class="btn btn-danger me-2" @onclick="() => ShowDeleteConfirmation(item.RuleId)">
+									<i class="bi bi-trash"></i> Apagar
+								</Button>
+								<Button class="btn btn-warning" @onclick="() => UpdateRule(item.RuleId)">
+									<i class="bi bi-pencil"></i> Atualizar
+								</Button>
+							</div>
+						</div>
+					}
+				</ul>
+
+			}
+		}
+	</Authorized>
+	<NotAuthorized>
+		<ClientServer.Client.Pages.Components.AccessDenied />
+	</NotAuthorized>
+</AuthorizeView>
 
 
 

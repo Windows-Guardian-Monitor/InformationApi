@@ -25,7 +25,8 @@ namespace ClientServer.Client.BackgroundServices
 				var userDto = new UserDto()
 				{
 					UserName = "admin",
-					Password = "admin"
+					Password = "admin",
+					IsAdmin = true
 				};
 
 				await _httpClient.PostAsJsonAsync(url, userDto);

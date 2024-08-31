@@ -1,16 +1,20 @@
-﻿using System.Net.Http.Headers;
+﻿using Blazored.SessionStorage;
+using ClientServer.Client.Models;
 using System.Security.Claims;
-using System.Security.Principal;
 using System.Text.Json;
 
 namespace ClientServer.Client.Authorization;
 
 public class CustomAuthStateProvider : AuthenticationStateProvider
 {
-	private readonly ILocalStorageService _localStorageService;
+	private readonly ISessionStorageService _localStorageService;
 	private readonly HttpClient _httpClient;
 
-	public CustomAuthStateProvider(ILocalStorageService localStorageService, HttpClient httpClient)
+	private ClaimsPrincipal _anonymousClaims = new ClaimsPrincipal(new ClaimsIdentity());
+
+	private const string token = "token";
+
+	public CustomAuthStateProvider(ISessionStorageService localStorageService, HttpClient httpClient)
 	{
 		_localStorageService = localStorageService;
 		_httpClient = httpClient;
@@ -18,58 +22,77 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
 
 	public override async Task<AuthenticationState> GetAuthenticationStateAsync()
 	{
-		AuthenticationState state = null;
-		ClaimsIdentity identity = new ClaimsIdentity(); //empty = not authorized
+		var state = new AuthenticationState(_anonymousClaims);
+
 		try
 		{
-			var token = await _localStorageService.GetItemAsStringAsync("token");
-			var expirationTimestamp = 0;
-			IEnumerable<Claim> claims = null;
+			var sessionInfo = await _localStorageService.GetItemAsync<UserSessionInformation>(token);
 
-			_httpClient.DefaultRequestHeaders.Authorization = null;
-
-			if ((string.IsNullOrEmpty(token) || string.IsNullOrWhiteSpace(token) || token == "" || token.Equals("")) is false)
+			if (sessionInfo is null)
 			{
-				(claims, expirationTimestamp) = ParseClaimsFromJwt(token);
-
-				if (expirationTimestamp > DateTimeOffset.Now.ToUnixTimeSeconds() && claims is not null)
-				{
-					identity = new ClaimsIdentity(claims, "jwt");
-					_httpClient.DefaultRequestHeaders.Authorization =
-						new AuthenticationHeaderValue("Bearer", token.Replace("\"", ""));
-				}
+				return state;
 			}
+
+			var claims = ParseClaimsFromJwt(sessionInfo.JwtToken);
+			var expirationTimestamp = ParseExpirationFromJwt(sessionInfo.JwtToken);
+
+			var identity = new ClaimsIdentity(); //empty = not authorized
+
+			if (expirationTimestamp > DateTimeOffset.Now.ToUnixTimeSeconds() && claims is not null)
+			{
+				identity = new ClaimsIdentity(claims, "jwt");
+			}
+
+			var user = new ClaimsPrincipal(identity);
+
+			state = new AuthenticationState(user);
+
+			return state;
 		}
 		catch (Exception e)
 		{
-			await Console.Out.WriteLineAsync(e.ToString());
+			return state;
 		}
-
-		var user = new ClaimsPrincipal(identity);
-
-		state = new AuthenticationState(user);
-
-		NotifyAuthenticationStateChanged(Task.FromResult(state)); //notify specific components that something regarding user session has changed
-
-		return state;
+		finally
+		{
+			NotifyAuthenticationStateChanged(Task.FromResult(state)); //notify specific components that something regarding user session has changed
+		}
 	}
 
-	private static (IEnumerable<Claim>, int) ParseClaimsFromJwt(string jwt)
+	public async ValueTask SaveAuthenticationState(UserSessionInformation userSessionInformation)
+	{
+		await _localStorageService.SetItemAsync(token, userSessionInformation);
+		await GetAuthenticationStateAsync();
+	}
+
+	public async ValueTask RemoveAuthenticationState()
+	{
+		await _localStorageService.RemoveItemAsync(token);
+		await GetAuthenticationStateAsync();
+	}
+
+	private static int ParseExpirationFromJwt(string jwt)
 	{
 		var payload = jwt.Split('.')[1];
 		var jsonBytes = ParseBase64WithoutPadding(payload);
 		var keyValuePairs = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonBytes);
-		var claims = keyValuePairs.Select(kvp => new Claim(kvp.Key, kvp.Value.ToString()));
-		//var expiration = keyValuePairs.Select(exp => exp.Value).FirstOrDefault();
 
 		var expirationStr = keyValuePairs.FirstOrDefault(kvp => kvp.Key.Equals("exp")).Value.ToString();
 
 		if (int.TryParse(expirationStr, out var expiration))
 		{
-			return (claims, expiration);
+			return expiration;
 		}
 
-		return (null, 0);
+		return 0;
+	}
+
+	private static IEnumerable<Claim> ParseClaimsFromJwt(string jwt)
+	{
+		var payload = jwt.Split('.')[1];
+		var jsonBytes = ParseBase64WithoutPadding(payload);
+		var keyValuePairs = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonBytes);
+		return keyValuePairs.Select(kvp => new Claim(kvp.Key, kvp.Value.ToString()));
 	}
 
 	private static byte[] ParseBase64WithoutPadding(string base64)

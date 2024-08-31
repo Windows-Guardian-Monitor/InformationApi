@@ -3,26 +3,33 @@
 @using ClientServer.Shared.DataTransferObjects
 @inject HttpClient Http
 
-<h3>Relatório de Máquinas</h3>
+<AuthorizeView>
+	<Authorized>
+		<h3>Relatório de Máquinas</h3>
 
-@if (_workstations is null)
-{
-	<p><em>Carregando máquinas...</em></p>
-}
-else
-{
-	@if (_workstations.Count is 0)
-	{
-		<p><em>Não foram encontradas máquinas</em></p>
-	}
-	else
-	{
-		@foreach (var workstaion in _workstations)
+		@if (_workstations is null)
 		{
-			<ClientServer.Client.Pages.Components.SimpleMachineItem Workstation="workstaion" />
+			<p><em>Carregando máquinas...</em></p>
 		}
-	}
-}
+		else
+		{
+			@if (_workstations.Count is 0)
+			{
+				<p><em>Não foram encontradas máquinas</em></p>
+			}
+			else
+			{
+				@foreach (var workstaion in _workstations)
+				{
+					<ClientServer.Client.Pages.Components.WorkstationListItem Workstation="workstaion"/>
+				}
+			}
+		}
+	</Authorized>
+	<NotAuthorized>
+		<ClientServer.Client.Pages.Components.AccessDenied />
+	</NotAuthorized>
+</AuthorizeView>
 
 @code {
 	private const string _endpoint = "Information/GetAllWorkstations";

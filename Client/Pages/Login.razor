@@ -1,4 +1,5 @@
 ﻿@page "/login"
+@using ClientServer.Client.Models
 @using ClientServer.Client.Operators.Contracts
 @using ClientServer.Client.Services.Contracts
 @using ClientServer.Shared.DataTransferObjects.Authentication
@@ -39,7 +40,9 @@
 				return;
 			}
 
-			await _userSessionService.Login(loginResponse.JwtToken);
+			var userSession = new UserSessionInformation(loginResponse.UserName, loginResponse.Role, loginResponse.JwtToken);
+
+			await _userSessionService.Login(userSession);
 
 			NavigationManager.NavigateTo("/");
 		}

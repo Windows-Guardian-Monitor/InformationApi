@@ -28,6 +28,36 @@
 			throw new InvalidOperationException("Could not store object");
 		}
 
+		public string AddIntegerValue(int value)
+		{
+			if (value is 0)
+			{
+				throw new InvalidOperationException($"The value can't be zero");
+			}
+
+			var id = Guid.NewGuid().ToString();
+
+			if (ValueDictionary.TryAdd(id, value))
+			{
+				return id;
+
+			}
+
+			throw new InvalidOperationException("Could not store object");
+		}
+
+		public int GetIntegerValue(string id)
+		{
+			if (ValueDictionary.TryGetValue(id, out var value) is false)
+			{
+				throw new InvalidOperationException($"{id} not found");
+			}
+
+			ValueDictionary.Remove(id);
+
+			return value is not int r ? throw new InvalidOperationException($"Incorret type happened") : r;
+		}
+
 		public T GetValue<T>(string id) where T : class
 		{
 			if (ValueDictionary.TryGetValue(id, out var value) is false)

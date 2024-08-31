@@ -1,79 +1,92 @@
-﻿@page "/workstations/{Id}"
+﻿@page "/workstations/{Identifier}"
+@using ClientServer.Client.Operators.Contracts
+@using ClientServer.Client.Services
 @using ClientServer.Shared.DataTransferObjects
 @using BlazorBootstrap;
 @using System.Text.Json
+@using ClientServer.Shared.Reponses
 @inject HttpClient Http
+@inject PageNavigationHelper _pageNavigationHelper
+@inject ICustomSnackbarOperator _customSnackbarOperator
+@inject NavigationManager NavigationManager
+<CustomSnackbar SnackbarOperator="_customSnackbarOperator" />
+<AuthorizeView>
+	<Authorized>
+		@if (Workstation is null)
+		{
+			<p><em>Carregando informações da máquina...</em></p>
+		}
+		else
+		{
+			<h3>Nome da Máquina: @Workstation.HostName</h3>
 
-@if (Workstation is null)
-{
-	<p><em>Carregando informações da máquina...</em></p>
-}
-else
-{
-	<h3>Nome da Máquina: @Workstation.HostName</h3>
+			<Card Style="width:28rem;margin-top:10px;margin-bottom:10px">
+				<CardBody>
+					<CardTitle>@Workstation.Uuid</CardTitle>
+				</CardBody>
+			</Card>
 
-	<Card Style="width:28rem;margin-top:10px;margin-bottom:10px">
-		<CardBody>
-			<CardTitle>@Workstation.Uuid</CardTitle>
-		</CardBody>
-	</Card>
+			<Card Style="width:28rem;margin-top:10px;margin-bottom:10px">
+				<CardHeader>
+					Processador
+				</CardHeader>
+				<ul class="list-group list-group-flush">
+					<li class="list-group-item">Descrição: @Workstation.CpuDescription</li>
+					<li class="list-group-item">Nome: @Workstation.CpuName</li>
+					<li class="list-group-item">Fabricante: @Workstation.CpuManufacturer</li>
+					<li class="list-group-item">Arquitetura: @Workstation.CpuArchitecture</li>
+				</ul>
+			</Card>
 
-	<Card Style="width:28rem;margin-top:10px;margin-bottom:10px">
-		<CardHeader>
-			Processador
-		</CardHeader>
-		<ul class="list-group list-group-flush">
-			<li class="list-group-item">Descrição: @Workstation.CpuDescription</li>
-			<li class="list-group-item">Nome: @Workstation.CpuName</li>
-			<li class="list-group-item">Fabricante: @Workstation.CpuManufacturer</li>
-			<li class="list-group-item">Arquitetura: @Workstation.CpuArchitecture</li>
-		</ul>
-	</Card>
+			<Card Style="width:28rem;margin-top:10px;margin-bottom:10px">
+				<CardHeader>
+					Memória
+				</CardHeader>
+				<ul class="list-group list-group-flush">
+					<li class="list-group-item">Quantidade Total: @Workstation.TotalMemory</li>
+					<li class="list-group-item">Velocidade: @Workstation.MemorySpeed</li>
+					<li class="list-group-item">Fabricante: @Workstation.MemoryManufacturer</li>
+				</ul>
+			</Card>
 
-	<Card Style="width:28rem;margin-top:10px;margin-bottom:10px">
-		<CardHeader>
-			Memória
-		</CardHeader>
-		<ul class="list-group list-group-flush">
-			<li class="list-group-item">Quantidade Total: @Workstation.TotalMemory</li>
-			<li class="list-group-item">Velocidade: @Workstation.MemorySpeed</li>
-			<li class="list-group-item">Fabricante: @Workstation.MemoryManufacturer</li>
-		</ul>
-	</Card>
+			<Card Style="width:28rem;margin-top:10px;margin-bottom:10px">
+				<CardHeader>
+					Sistema Operacional
+				</CardHeader>
+				<ul class="list-group list-group-flush">
+					<li class="list-group-item">Descrição: @Workstation.OSDescription</li>
+					<li class="list-group-item">Fabricante: @Workstation.OsManufacturer</li>
+					<li class="list-group-item">Número Serial: @Workstation.OsSerial</li>
+				</ul>
+			</Card>
 
-	<Card Style="width:28rem;margin-top:10px;margin-bottom:10px">
-		<CardHeader>
-			Sistema Operacional
-		</CardHeader>
-		<ul class="list-group list-group-flush">
-			<li class="list-group-item">Descrição: @Workstation.OSDescription</li>
-			<li class="list-group-item">Fabricante: @Workstation.OsManufacturer</li>
-			<li class="list-group-item">Número Serial: @Workstation.OsSerial</li>
-		</ul>
-	</Card>
-
-	<Card Style="width:28rem;margin-top:10px;margin-bottom:10px">
-		<CardHeader>
-			Discos do Sistema
-		</CardHeader>
-		<ul class="list-group list-group-flush">
-			@foreach (var item in Workstation.Disks)
-			{
-				<Card Style="margin:10px">
-					<CardHeader>
-						Nome: @item.DiskName
-					</CardHeader>
-					<li class="list-group-item">Tamanho Total: @item.TotalSize</li>
-					<li class="list-group-item">Tipo: @item.DiskType</li>
-				</Card>
-			}
-		</ul>
-	</Card>
-}
+			<Card Style="width:28rem;margin-top:10px;margin-bottom:10px">
+				<CardHeader>
+					Discos do Sistema
+				</CardHeader>
+				<ul class="list-group list-group-flush">
+					@foreach (var item in Workstation.Disks)
+					{
+						<Card Style="margin:10px">
+							<CardHeader>
+								Nome: @item.DiskName
+							</CardHeader>
+							<li class="list-group-item">Tamanho Total: @item.TotalSize</li>
+							<li class="list-group-item">Tipo: @item.DiskType</li>
+						</Card>
+					}
+				</ul>
+			</Card>
+		}
+	</Authorized>
+	<NotAuthorized>
+		<AccessDenied />
+	</NotAuthorized>
+</AuthorizeView>
 
 @code {
 	[Parameter]
-	public string Id { get; set; }
+	public string Identifier { get; set; }
 
 	private WorkstationItem Workstation { get; set; }
 
@@ -81,12 +94,40 @@ else
 
 	protected override async Task OnInitializedAsync()
 	{
-		var url = $"{InformationHandler.GetUrl()}{_endpoint}";
+		try
+		{
+			_customSnackbarOperator.Hide();
 
-		var response = await Http.PostAsJsonAsync(url, Id);
+			var workstationId = _pageNavigationHelper.GetIntegerValue(Identifier);
 
-		var json = await response.Content.ReadAsStringAsync();
+			var url = $"{InformationHandler.GetUrl()}{_endpoint}";
 
-		Workstation = JsonSerializer.Deserialize<WorkstationItem>(json);
+			var response = await Http.PostAsJsonAsync(url, workstationId.ToString());
+
+			var json = await response.Content.ReadAsStringAsync();
+
+			var wsResponse = JsonSerializer.Deserialize<WorkstationResponse>(json);
+
+			if (wsResponse.Success is false)
+			{
+				_customSnackbarOperator.ShowErrorMessage(wsResponse.Message);
+			}
+
+			Workstation = wsResponse.Workstation;
+		}
+		catch (InvalidOperationException)
+		{
+			_customSnackbarOperator.ShowErrorMessage("Não foi possível esta página, voltando ao relatório de máquinas em instantes");
+
+			StateHasChanged();
+
+			await (new PeriodicTimer(TimeSpan.FromSeconds(3))).WaitForNextTickAsync();
+
+			NavigationManager.NavigateTo("workstations");
+		}
+		catch (Exception e)
+		{
+			_customSnackbarOperator.ShowErrorMessage(e.Message);
+		}
 	}
 }
