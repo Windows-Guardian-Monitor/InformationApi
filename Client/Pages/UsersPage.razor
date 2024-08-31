@@ -1,15 +1,27 @@
 ﻿@page "/users_home"
-<PageTitle></PageTitle>
+<PageTitle>Usuários</PageTitle>
+
 <AuthorizeView>
 	<Authorized>
 		<h3>Usuários</h3>
+		<AuthorizeView Context="admctx" Roles="Administrator">
+			<Authorized>
+				<a class="btn btn-info" href="create_user">Criar novo usuário</a>
+			</Authorized>
+		</AuthorizeView>
+
+		<AuthorizeView Context="commctx" Roles="Common">
+			<Authorized>
+				<h3>Você não tem permissão para criar novos usuários.</h3>
+			</Authorized>
+		</AuthorizeView>
 	</Authorized>
 	<NotAuthorized>
 		<ClientServer.Client.Pages.Components.AccessDenied />
 	</NotAuthorized>
 </AuthorizeView>
 
-<AuthorizeView Roles="Administrator">
+@* <AuthorizeView Roles="Administrator">
 	<Authorized>
 		<a class="btn btn-info" href="create_user">Criar novo usuário</a>
 	</Authorized>
@@ -17,6 +29,15 @@
 		<ClientServer.Client.Pages.Components.AccessDenied />
 	</NotAuthorized>
 </AuthorizeView>
+
+<AuthorizeView Roles="Common">
+	<Authorized>
+		<h3>Você não tem permissão para criar novos usuários.</h3>
+	</Authorized>
+	<NotAuthorized>
+		<ClientServer.Client.Pages.Components.AccessDenied />
+	</NotAuthorized>
+</AuthorizeView> *@
 
 @code {
 
