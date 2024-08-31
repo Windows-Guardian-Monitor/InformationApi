@@ -1,0 +1,23 @@
+﻿@page "/users_home"
+<PageTitle></PageTitle>
+<AuthorizeView>
+	<Authorized>
+		<h3>Usuários</h3>
+	</Authorized>
+	<NotAuthorized>
+		<ClientServer.Client.Pages.Components.AccessDenied />
+	</NotAuthorized>
+</AuthorizeView>
+
+<AuthorizeView Roles="Administrator">
+	<Authorized>
+		<a class="btn btn-info" href="create_user">Criar novo usuário</a>
+	</Authorized>
+	<NotAuthorized>
+		<ClientServer.Client.Pages.Components.AccessDenied />
+	</NotAuthorized>
+</AuthorizeView>
+
+@code {
+
+}
