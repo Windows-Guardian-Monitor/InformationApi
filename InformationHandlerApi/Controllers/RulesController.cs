@@ -132,6 +132,21 @@ namespace InformationHandlerApi.Controllers
 			}
 		}
 
+		[HttpPost("AcquireAll")]
+		public WsRuleResponse GetAllRules(GetRuleByWsRequest getRuleByWsRequest)
+		{
+			try
+			{
+				var rules = _ruleRepository.GetAll();
+
+				return new WsRuleResponse(rules, true, string.Empty);
+			}
+			catch (Exception e)
+			{
+				return new WsRuleResponse(null, false, e.Message);
+			}
+		}
+
 		[HttpPost("Delete")]
 		public ValueTask<ActionResult<StandardResponse>> DeletedRuleById([FromBody] byte[] serializedDeleteRuleRequest)
 		{
