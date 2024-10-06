@@ -38,12 +38,12 @@ namespace InformationHandlerApi.Controllers
 				var token =
 						"eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTUxMiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiVG9ueSBTdGFyayIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6Iklyb24gTWFuIiwiZXhwIjozMTY4NTQwMDAwfQ.IbVQa1lNYYOzwso69xYfsMOHnQfO3VLvVqV2SOXS7sTtyyZ8DEf5jmmwz2FGLJJvZnQKZuieHnmHkg7CGkDbvA";
 
-				if (_userRepository.Exists(userDto.UserName) is false)
+				if (_userRepository.ExistsByUserName(userDto.UserName) is false)
 				{
 					return LoginResponse.Create(string.Empty, string.Empty, string.Empty, requestPasswordChange: false, StandardResponse.CreateConflict("Usuário ou senha incorretos"));
 				}
 
-				var dbUser = _userRepository.GetUser(userDto.UserName);
+				var dbUser = _userRepository.GetUserByUserName(userDto.UserName);
 
 				if (dbUser is null)
 				{
@@ -93,12 +93,54 @@ namespace InformationHandlerApi.Controllers
 			return jwt;
 		}
 
+		[HttpPost("ResetPassword")]
+		public StandardResponse ResetPassword(ResetPasswordDto request)
+		{
+			try
+			{
+				if (string.IsNullOrEmpty(request.Email))
+				{
+					throw new Exception("Por favor preencha o e-mail");
+				}
+
+				if (_userRepository.ExistsByEmail(request.Email) is false)
+				{
+					return StandardResponse.CreateOkResponse();
+				}
+
+				var user = _userRepository.GetUserByEmail(request.Email);
+
+				if (user is null)
+				{
+					return StandardResponse.CreateOkResponse();
+				}
+
+				var password = new Password(14).IncludeLowercase().IncludeNumeric().IncludeSpecial().IncludeUppercase().Next();
+
+				CreatePasswordHash(password, out var passwordHash, out var passwordSalt);
+
+				user.HasLoggedIn = false;
+				user.PasswordHash = passwordHash;
+				user.PasswordSalt = passwordSalt;
+
+				_userRepository.Update(user);
+
+				_emailService.SendResetPassword(password, user.UserName, user.Email);
+
+				return StandardResponse.CreateOkResponse();
+			}
+			catch (Exception e)
+			{
+				return StandardResponse.CreateInternalServerErrorResponse(e.Message);
+			}
+		}
+
 		[HttpPost("Register")]
 		public StandardResponse RegisterUser(UserDto request)
 		{
 			try
 			{
-				if (_userRepository.Exists(request.UserName))
+				if (_userRepository.ExistsByUserName(request.UserName))
 				{
 					return new StandardResponse("Nome de usuário inválido", false, HttpStatusCode.Conflict);
 				}
@@ -122,7 +164,7 @@ namespace InformationHandlerApi.Controllers
 
 				if (string.IsNullOrEmpty(request.Email) is false)
 				{
-					_emailService.Send(request.Password, request.UserName, request.Email);
+					_emailService.SendNewUserRegistration(request.Password, request.UserName, request.Email);
 				}
 
 				_userRepository.Insert(user);

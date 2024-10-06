@@ -9,6 +9,7 @@
 @inject IUserSessionService _userSessionService
 @inject ICustomSnackbarOperator _snackbarOperator
 @inject NavigationManager NavigationManager
+<PageTitle>Login</PageTitle>
 <h3>Login</h3>
 <ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_snackbarOperator" />
 <EditForm Model="user" OnSubmit="HandleLogin">
@@ -19,11 +20,18 @@
 	<InputText id="password" @bind-Value="user.Password" type="password" />
 
 	<Button Type="ButtonType.Submit" Class="btn btn-primary">Entrar</Button>
+	<label @onclick="@GoToForgotEmailPage">Esqueci minha senha...</label>
 </EditForm>
 
 @code {
-	UserDto user = new UserDto();
 
+	void GoToForgotEmailPage()
+	{
+		NavigationManager.NavigateTo("/resetPassword");
+	}
+
+	UserDto user = new UserDto();
+	
 	async Task HandleLogin()
 	{
 		try

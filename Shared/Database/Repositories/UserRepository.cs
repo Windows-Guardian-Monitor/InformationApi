@@ -19,13 +19,22 @@ namespace ClientServer.Shared.Database.Repositories
 			_context.SaveChanges();
 		}
 
-		public bool Exists(string userName) => _context.Users.Any(u => u.UserName.Equals(userName, StringComparison.OrdinalIgnoreCase));
+		public bool ExistsByUserName(string userName) => _context.Users.Any(u => u.UserName.Equals(userName, StringComparison.OrdinalIgnoreCase));
+		public bool ExistsByEmail(string email) => _context.Users.Any(u => u.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
 
-		public DbUser GetUser(string userName) => _context.Users.FirstOrDefault(u => u.UserName.Equals(userName, StringComparison.OrdinalIgnoreCase));
+		public DbUser GetUserByUserName(string userName) => _context.Users.FirstOrDefault(u => u.UserName.Equals(userName, StringComparison.OrdinalIgnoreCase));
+
+		public DbUser GetUserByEmail(string email) => _context.Users.FirstOrDefault(u => u.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
 
 		public void SetUserAlreadyLoggedIn(DbUser dbUser)
 		{
 			dbUser.HasLoggedIn = true;
+			_context.Users.Update(dbUser);
+			_context.SaveChanges(true);
+		}
+
+		public void Update(DbUser dbUser)
+		{
 			_context.Users.Update(dbUser);
 			_context.SaveChanges(true);
 		}

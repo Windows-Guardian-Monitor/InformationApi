@@ -1,0 +1,54 @@
+﻿@page "/resetPassword"
+@using ClientServer.Client.Operators.Contracts
+@using ClientServer.Shared.DataTransferObjects.Authentication
+@using System.Text.Json
+@using InformationHandlerApi.Business.Responses
+@inject HttpClient Http
+<PageTitle>Resetar Senha</PageTitle>
+<h3>Resetar a senha</h3>
+
+@inject ICustomSnackbarOperator _snackbarOperator
+<ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_snackbarOperator" />
+<EditForm Model="resetPasswordDto" OnSubmit="HandlePasswordReset">
+	<label>Por favor coloque seu endereço de e-mail cadastrado</label>
+	<InputText id="username" @bind-Value="resetPasswordDto.Email" />
+
+	<Button Type="ButtonType.Submit" Class="btn btn-primary">Enviar e-mail</Button>
+</EditForm>
+
+
+@code {
+	ResetPasswordDto resetPasswordDto = new ResetPasswordDto();
+
+	protected override Task OnInitializedAsync()
+	{
+		_snackbarOperator.ShowInformationMessage(
+			"Por favor entre com seu e-mail cadastrado",
+		"Se ele estiver correto você irá receber uma mensagem com os próximos passos para resetar sua senha");
+		return base.OnInitializedAsync();
+	}
+
+	async Task HandlePasswordReset()
+	{
+		try
+		{
+			var result = await Http.PostAsJsonAsync("https://localhost:7102/auth/ResetPassword", resetPasswordDto);
+
+			var json = await result.Content.ReadAsStringAsync();
+
+			var loginResponse = JsonSerializer.Deserialize<StandardResponse>(json);
+
+			if (loginResponse.Success is false)
+			{
+				_snackbarOperator.ShowErrorMessage(loginResponse.Message);
+				return;
+			}
+
+			_snackbarOperator.ShowInformationMessage("Por favor cheque seu e-mail");
+		}
+		catch (Exception e)
+		{
+			_snackbarOperator.ShowErrorMessage(e.Message);
+		}
+	}
+}

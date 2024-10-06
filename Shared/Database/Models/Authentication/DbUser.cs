@@ -9,8 +9,8 @@ namespace ClientServer.Shared.Database.Models.Authentication
         public string UserName { get; set; } = string.Empty;
 		public byte[] PasswordHash { get; set; } = Array.Empty<byte>();
 		public byte[] PasswordSalt { get; set; } = Array.Empty<byte>();
-        public string Role { get; set; }
+        public string Role { get; set; } = string.Empty;
         public bool HasLoggedIn { get; set; }
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
     }
 }
