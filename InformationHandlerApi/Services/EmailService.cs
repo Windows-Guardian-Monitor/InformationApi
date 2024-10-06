@@ -6,8 +6,8 @@ namespace InformationHandlerApi.Services
 {
     public class EmailService : IEmailService
 	{
-		private const string email = "w-guardian-monitor@outlook.com";
-		private const string credentialPassword = "&SUf6T7d4z";
+		//private const string email = "w-guardian-monitor@outlook.com";
+		//private const string credentialPassword = "&SUf6T7d4z";
 
 		public void Send(string password, string userName, string emailDestination)
 		{
@@ -15,10 +15,7 @@ namespace InformationHandlerApi.Services
 
 			const string subject = "Seu usuário foi criado";
 
-			var destinyConfiguration = new EmailDestinyConfiguration(email, subject, email, credentialPassword, new[] { emailDestination })
-			{
-				Priority = MailPriority.High
-			};
+			var destinyConfiguration = new DestinationConfiguration(subject,MailPriority.High, new[] { emailDestination });
 
 			var emailContent = new EmailContent()
 			{
@@ -40,7 +37,7 @@ namespace InformationHandlerApi.Services
 				IsHtml = true
 			};
 
-			manager.SendMail(destinyConfiguration, emailContent);
+			manager.SendMail(emailContent, destinyConfiguration);
 		}
 	}
 }

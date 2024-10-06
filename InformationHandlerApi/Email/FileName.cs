@@ -1,67 +1,53 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Net.Mail;
 using System.Net.Mime;
-using System.Xml.Linq;
 
 namespace InformationHandlerApi.Email
 {
 	public class EmailManager
 	{
-		public void SendMail(EmailDestinyConfiguration emailConfig, EmailContent content)
+		private const string host = "smtp.gmail.com";
+		private const int port = 587;
+		private const string email = "windowsguardianmonitor@gmail.com";
+		private const string appKey = "yobt ckvw zuqo mcig";
+		private const string displayName = "WGM Administrator";
+
+		public void SendMail(EmailContent content, DestinationConfiguration destinationConfiguration)
 		{
-			MailMessage msg = ConstructEmailMessage(emailConfig, content);
-			Send(msg, emailConfig);
+			MailMessage msg = CreateEmailMessage(content, destinationConfiguration);
+			Send(msg);
 		}
 
-		private static MailMessage ConstructEmailMessage(EmailDestinyConfiguration emailConfig, EmailContent content)
+		private static MailMessage CreateEmailMessage(EmailContent content, DestinationConfiguration destinationConfiguration)
 		{
-			MailMessage msg = new MailMessage();
+			var msg = new MailMessage();
 
-			if (emailConfig.Destinations is null)
-			{
-				throw new InvalidOperationException("Must set Destinations property");
-			}
-
-			if (emailConfig.Destinations.All(d => string.IsNullOrEmpty(d)))
-			{
-				throw new InvalidOperationException("Must set Destinations property");
-			}
-
-			foreach (string to in emailConfig.Destinations)
-			{
-				if (string.IsNullOrEmpty(to) is false)
-				{
-					msg.To.Add(to);
-				}
-			}
-
-			if (emailConfig.CCs is not null)
-			{
-				foreach (string cc in emailConfig.CCs)
-				{
-					if (string.IsNullOrEmpty(cc) is false)
-					{
-						msg.CC.Add(cc);
-					}
-				}
-			}
-
-			msg.From = new MailAddress(emailConfig.From,
-									   emailConfig.FromDisplayName,
+			msg.From = new MailAddress(email,
+									   displayName,
 									   System.Text.Encoding.UTF8);
 
 			msg.IsBodyHtml = content.IsHtml;
-			
+
 			msg.Body = content.Content;
-			
-			msg.Priority = emailConfig.Priority;
-			
-			msg.Subject = emailConfig.Subject;
-			
+
+			msg.Priority = destinationConfiguration.Priority;
+
+			msg.Subject = destinationConfiguration.Subject;
+
 			msg.BodyEncoding = System.Text.Encoding.UTF8;
-			
+
 			msg.SubjectEncoding = System.Text.Encoding.UTF8;
+
+
+			if (destinationConfiguration.Destinations is null || destinationConfiguration.Destinations.Length is 0)
+			{
+				throw new Exception("Por favor preencha o e-mail");
+			}
+
+			foreach (var destination in destinationConfiguration.Destinations)
+			{
+				msg.To.Add(destination);
+			}
 
 			if (content.AttachFileName != null)
 			{
@@ -73,20 +59,16 @@ namespace InformationHandlerApi.Email
 			return msg;
 		}
 
-		private const string host = "smtp.gmail.com";
-		private const int port = 587;
-		private const string email = "windowsguardianmonitor@gmail.com";
-		private const string appKey = "yobt ckvw zuqo mcig";
-
-		private static void Send(MailMessage message, EmailDestinyConfiguration emailConfig)
+		private static void Send(MailMessage message)
 		{
-			var client = new SmtpClient(host, port);
-			
-			client.Credentials = new NetworkCredential(
+			var client = new SmtpClient(host, port)
+			{
+				Credentials = new NetworkCredential(
 								  email,
-								  appKey);
-			
-			client.EnableSsl = true;  // this is critical
+								  appKey),
+
+				EnableSsl = true  // this is critical
+			};
 
 
 			try
@@ -98,7 +80,11 @@ namespace InformationHandlerApi.Email
 				Console.WriteLine("Error in Send email: {0}", e.Message);
 				throw;
 			}
-			message.Dispose();
+			finally
+			{
+				client.Dispose();
+				message.Dispose();
+			}
 		}
 	}
 }
