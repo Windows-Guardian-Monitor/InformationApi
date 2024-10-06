@@ -12,5 +12,7 @@ namespace ClientServer.Shared.Database.Models.Authentication
         public string Role { get; set; } = string.Empty;
         public bool HasLoggedIn { get; set; }
         public string Email { get; set; } = string.Empty;
-    }
+        public bool CanChangePassword { get; set; }
+		public bool HasChangedPassword { get; set; }
+	}
 }

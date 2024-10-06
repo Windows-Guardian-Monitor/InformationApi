@@ -26,6 +26,7 @@ namespace InformationHandlerApi
             builder.Services.AddTransient<IProgramRepository, ProgramRepository>();
             builder.Services.AddTransient<IRuleRepository, RuleRepository>();
             builder.Services.AddTransient<IUserRepository, UserRepository>();
+            builder.Services.AddTransient<IPasswordService, PasswordService>();
         }
 
         public static void Main(string[] args)

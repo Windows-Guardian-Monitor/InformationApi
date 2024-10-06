@@ -10,18 +10,25 @@
 @inject ICustomSnackbarOperator _snackbarOperator
 @inject NavigationManager NavigationManager
 <PageTitle>Login</PageTitle>
-<h3>Login</h3>
 <ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_snackbarOperator" />
-<EditForm Model="user" OnSubmit="HandleLogin">
-	<label for="userName">Nome de usuário</label>
-	<InputText id="username" @bind-Value="user.UserName" />
+<AuthorizeView>
+	<Authorized>
+		<h3>Esta tela só pode ser acessada enquanto você não estiver logado</h3>
+	</Authorized>
+	<NotAuthorized Context="notAuthorized">
+		<h3>Login</h3>
+		<EditForm Context="notAuthorizedEditForm" Model="user" OnSubmit="HandleLogin">
+			<label for="userName">Nome de usuário</label>
+			<InputText id="username" @bind-Value="user.UserName" />
 
-	<label for="password">Senha</label>
-	<InputText id="password" @bind-Value="user.Password" type="password" />
+			<label for="password">Senha</label>
+			<InputText id="password" @bind-Value="user.Password" type="password" />
 
-	<Button Type="ButtonType.Submit" Class="btn btn-primary">Entrar</Button>
-	<label @onclick="@GoToForgotEmailPage">Esqueci minha senha...</label>
-</EditForm>
+			<Button Type="ButtonType.Submit" Class="btn btn-primary">Entrar</Button>
+			<label @onclick="@GoToForgotEmailPage">Esqueci minha senha...</label>
+		</EditForm>
+	</NotAuthorized>
+</AuthorizeView>
 
 @code {
 
@@ -31,7 +38,7 @@
 	}
 
 	UserDto user = new UserDto();
-	
+
 	async Task HandleLogin()
 	{
 		try
@@ -45,6 +52,12 @@
 			if (loginResponse.Success is false)
 			{
 				_snackbarOperator.ShowErrorMessage(loginResponse.Message);
+				return;
+			}
+
+			if (loginResponse.RequestPasswordChange)
+			{
+				NavigationManager.NavigateTo("/newPassword");
 				return;
 			}
 

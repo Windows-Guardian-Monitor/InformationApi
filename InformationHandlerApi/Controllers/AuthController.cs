@@ -22,12 +22,14 @@ namespace InformationHandlerApi.Controllers
 		private readonly IConfiguration _configuration;
 		private readonly IUserRepository _userRepository;
 		private readonly IEmailService _emailService;
+		private readonly IPasswordService _passwordService;
 
-		public AuthController(IConfiguration configuration, IUserRepository userRepository, IEmailService emailService)
+		public AuthController(IConfiguration configuration, IUserRepository userRepository, IEmailService emailService, IPasswordService passwordService)
 		{
 			_configuration = configuration;
 			_userRepository = userRepository;
 			_emailService = emailService;
+			_passwordService = passwordService;
 		}
 
 		[HttpPost("Login")]
@@ -57,9 +59,17 @@ namespace InformationHandlerApi.Controllers
 
 				token = CreateToken(dbUser);
 
+				if (dbUser.HasChangedPassword is false)
+				{
+					return LoginResponse.Create(token, dbUser.UserName, dbUser.Role, requestPasswordChange: true, StandardResponse.CreateOkResponse());
+				}
+
 				if (dbUser.HasLoggedIn is false)
 				{
-					_userRepository.SetUserAlreadyLoggedIn(dbUser);
+					dbUser.HasLoggedIn = false;
+					dbUser.CanChangePassword = true;
+					dbUser.HasChangedPassword = false;
+					_userRepository.Update(dbUser);
 					return LoginResponse.Create(token, dbUser.UserName, dbUser.Role, requestPasswordChange: true, StandardResponse.CreateOkResponse());
 				}
 
@@ -115,17 +125,78 @@ namespace InformationHandlerApi.Controllers
 					return StandardResponse.CreateOkResponse();
 				}
 
-				var password = new Password(14).IncludeLowercase().IncludeNumeric().IncludeSpecial().IncludeUppercase().Next();
+				var password = _passwordService.Create();
 
 				CreatePasswordHash(password, out var passwordHash, out var passwordSalt);
 
 				user.HasLoggedIn = false;
 				user.PasswordHash = passwordHash;
 				user.PasswordSalt = passwordSalt;
+				user.CanChangePassword = true;
+				user.HasChangedPassword = false;
 
 				_userRepository.Update(user);
 
 				_emailService.SendResetPassword(password, user.UserName, user.Email);
+
+				return StandardResponse.CreateOkResponse();
+			}
+			catch (Exception e)
+			{
+				return StandardResponse.CreateInternalServerErrorResponse(e.Message);
+			}
+		}
+
+		[HttpPost("NewPassword")]
+		public StandardResponse NewPassword(NewPasswordDto request)
+		{
+			try
+			{
+				var user = _userRepository.GetUserByUserName(request.UserName);
+
+				if (string.IsNullOrEmpty(request.UserName))
+				{
+					throw new Exception("Por favor preencha o nome de usuário");
+				}
+
+				if (string.IsNullOrEmpty(request.Password))
+				{
+					throw new Exception("Por favor preencha a senha");
+				}
+
+				if (string.IsNullOrEmpty(request.PasswordRepeat))
+				{
+					throw new Exception("Por favor preencha o segundo campo de senha");
+				}
+
+				if (user is null)
+				{
+					return StandardResponse.CreateOkResponse();
+				}
+
+				if (user.CanChangePassword is false)
+				{
+					throw new Exception("Para trocar sua senha por favor clique em \"Esqueci minha senha...\" na tela de login");
+				}
+
+				var (isValid, message) = _passwordService.IsPasswordValid(request.Password, request.PasswordRepeat);
+
+				if (isValid is false)
+				{
+					return StandardResponse.CreateConflict(message);
+				}
+
+				var password = request.Password;
+
+				CreatePasswordHash(password, out var passwordHash, out var passwordSalt);
+
+				user.HasLoggedIn = true;
+				user.CanChangePassword = false;
+				user.HasChangedPassword = true;
+				user.PasswordHash = passwordHash;
+				user.PasswordSalt = passwordSalt;
+
+				_userRepository.Update(user);
 
 				return StandardResponse.CreateOkResponse();
 			}
@@ -147,8 +218,7 @@ namespace InformationHandlerApi.Controllers
 
 				if (string.IsNullOrEmpty(request.Password))
 				{
-					var createdPassword = new Password(14).IncludeLowercase().IncludeNumeric().IncludeSpecial().IncludeUppercase();
-					request.Password = createdPassword.Next();
+					request.Password = _passwordService.Create();
 				}
 
 				CreatePasswordHash(request.Password, out var passwordHash, out var passwordSalt);
@@ -159,7 +229,9 @@ namespace InformationHandlerApi.Controllers
 					PasswordSalt = passwordSalt,
 					UserName = request.UserName,
 					Role = request.IsAdmin ? "Administrator" : "Common",
-					Email = request.Email
+					Email = request.Email,
+					CanChangePassword = true,
+					HasChangedPassword = false
 				};
 
 				if (string.IsNullOrEmpty(request.Email) is false)
