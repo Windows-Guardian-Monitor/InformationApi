@@ -1,13 +1,13 @@
 ﻿using System;
+using System.Net;
 using System.Net.Mail;
 using System.Net.Mime;
+using System.Xml.Linq;
 
 namespace InformationHandlerApi.Email
 {
 	public class EmailManager
 	{
-		private const string m_HostName = "smtp-mail.outlook.com";
-
 		public void SendMail(EmailDestinyConfiguration emailConfig, EmailContent content)
 		{
 			MailMessage msg = ConstructEmailMessage(emailConfig, content);
@@ -73,16 +73,21 @@ namespace InformationHandlerApi.Email
 			return msg;
 		}
 
+		private const string host = "smtp.gmail.com";
+		private const int port = 587;
+		private const string email = "windowsguardianmonitor@gmail.com";
+		private const string appKey = "yobt ckvw zuqo mcig";
+
 		private static void Send(MailMessage message, EmailDestinyConfiguration emailConfig)
 		{
-			var client = new SmtpClient();
-			client.UseDefaultCredentials = false;
-			client.Credentials = new System.Net.NetworkCredential(
-								  emailConfig.ClientCredentialUserName,
-								  emailConfig.ClientCredentialPassword);
-			client.Host = m_HostName;
-			client.Port = 25;  // this is critical
+			var client = new SmtpClient(host, port);
+			
+			client.Credentials = new NetworkCredential(
+								  email,
+								  appKey);
+			
 			client.EnableSsl = true;  // this is critical
+
 
 			try
 			{
