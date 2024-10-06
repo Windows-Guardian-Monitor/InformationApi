@@ -1,0 +1,31 @@
+﻿@using ClientServer.Client.Services
+@using ClientServer.Shared.DataTransferObjects
+@using BlazorBootstrap;
+@using System.Text.Json
+@inject NavigationManager NavigationManager
+@inject PageNavigationHelper _pageNavigationHelper
+
+<h3>Máquinas</h3>
+
+<Card Style="width:28rem;">
+	<CardBody>
+		<CardTitle>Nome da máquina: @Workstation.HostName</CardTitle>
+		<CardSubTitle Class="mb-2 text-muted">UUID: @Workstation.Uuid</CardSubTitle>
+		<Button Color="ButtonColor.Primary" @onclick="OpenWorkstationPage" Type="ButtonType.Link">Ver mais informações</Button>
+	</CardBody>
+</Card>
+
+@code {
+	[Parameter]
+	public SimpleWorkstationItem Workstation { get; set; }
+
+
+	public void OpenWorkstationPage()
+	{
+		var identifier = _pageNavigationHelper.AddIntegerValue(Workstation.Id);
+
+		var pageUrl = $"workstations/{identifier}";
+
+		NavigationManager.NavigateTo(pageUrl, false);
+	}
+}

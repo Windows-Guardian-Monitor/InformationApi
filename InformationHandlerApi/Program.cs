@@ -1,3 +1,6 @@
+using ClientServer.Shared.Contracts.Repositories;
+using ClientServer.Shared.Database.Repositories;
+using InformationHandlerApi.Contracts;
 using InformationHandlerApi.Contracts.Repositories;
 using InformationHandlerApi.Database;
 using InformationHandlerApi.Database.Repositories;
@@ -11,14 +14,18 @@ namespace InformationHandlerApi
         private static void ConfigureServices(WebApplicationBuilder builder)
         {
             var conn = builder.Configuration.GetConnectionString("ConnectionString");
-            builder.Services.AddMySql<DatabaseContext>(conn, ServerVersion.AutoDetect(conn));
+            builder.Services.AddMySql<DatabaseContext>(conn, ServerVersion.AutoDetect(conn), options => options.EnableStringComparisonTranslations());
             //builder.Services.AddDbContext<DatabaseContext>(options => options.UseMySql(ServerVersion.AutoDetect(conn)));
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddHostedService<DatabaseHandlerService>();
 
+            builder.Services.AddTransient<IEmailService, EmailService>();
             builder.Services.AddTransient<IWindowsWorkstationRepository, WindowsWorkstationRepository>();
+            builder.Services.AddTransient<IProgramRepository, ProgramRepository>();
+            builder.Services.AddTransient<IRuleRepository, RuleRepository>();
+            builder.Services.AddTransient<IUserRepository, UserRepository>();
         }
 
         public static void Main(string[] args)

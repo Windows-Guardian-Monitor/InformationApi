@@ -1,8 +1,10 @@
 ﻿using ClientServer.Shared.DataTransferObjects;
+using ClientServer.Shared.Reponses;
 using InformationHandlerApi.Business.Responses;
 using InformationHandlerApi.Contracts.Repositories;
 using InformationHandlerApi.Database.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 using System.Text.Json;
 
 namespace InformationHandlerApi.Controllers
@@ -34,74 +36,76 @@ namespace InformationHandlerApi.Controllers
 
 				if (windowsWorkstation is null)
 				{
-					return new StandardResponse
-					{
-						Code = System.Net.HttpStatusCode.InternalServerError,
-						Message = "Could not obtain workstation info"
-					};
+					return new StandardResponse("Could not obtain workstation info", false, HttpStatusCode.InternalServerError);
 				}
 
 				await _windowsWorkstationRepository.Upsert(windowsWorkstation);
 
-				return new StandardResponse
-				{
-					Code = System.Net.HttpStatusCode.OK,
-					Message = "OK"
-				};
+				return new StandardResponse("OK", true, HttpStatusCode.OK);
 			}
 			catch (Exception e)
 			{
-				return new StandardResponse
-				{
-					Code = System.Net.HttpStatusCode.InternalServerError,
-					Message = e.Message
-				};
+				return new StandardResponse(e.Message, false, HttpStatusCode.InternalServerError);
 			}
 		}
 
 		[HttpPost("GetSpecificWorkstation")]
-		public ActionResult<WorkstationItem> GetWorkstation([FromBody] string strId)
+		public ActionResult<WorkstationResponse> GetWorkstation([FromBody] string strId)
 		{
-			if (_windowsWorkstationRepository.Count() is 0)
+			try
 			{
-				return NotFound();
-			}
-
-			if (int.TryParse(strId, out var id) is false)
-			{
-				return BadRequest("Incorrect parameter type");
-			}
-
-			var dbWorkstation = _windowsWorkstationRepository.SelectWorkstationsAndAttributesById(id);
-
-			var disks = new List<DiskItem>();
-			foreach (var dbDisk in dbWorkstation.DisksInfo)
-			{
-				var disk = new DiskItem
+				if (_windowsWorkstationRepository.Count() is 0)
 				{
-					DiskName = dbDisk.DiskName,
-					DiskType = dbDisk.DiskType,
-					TotalSize = dbDisk.TotalSize,
-				};
+					return NotFound();
+				}
 
-				disks.Add(disk);
+				if (int.TryParse(strId, out var id) is false)
+				{
+					return BadRequest("Incorrect parameter type");
+				}
 
+				var dbWorkstation = _windowsWorkstationRepository.SelectWorkstationsAndAttributesById(id);
+
+				if (dbWorkstation is null)
+				{
+					return WorkstationResponse.Create(null, StandardResponse.CreateBadRequest("Máquina não encontrada")); 
+				}
+
+				var disks = new List<DiskItem>();
+				foreach (var dbDisk in dbWorkstation.DisksInfo)
+				{
+					var disk = new DiskItem
+					{
+						DiskName = dbDisk.DiskName,
+						DiskType = dbDisk.DiskType,
+						TotalSize = dbDisk.TotalSize,
+					};
+
+					disks.Add(disk);
+
+				}
+
+				var wsItem = new WorkstationItem(
+					dbWorkstation.HostName,
+					dbWorkstation.Uuid,
+					dbWorkstation.CpuInfo.Description,
+					dbWorkstation.CpuInfo.Name,
+					dbWorkstation.CpuInfo.CpuManufacturer,
+					dbWorkstation.CpuInfo.Architecture,
+					dbWorkstation.RamInfo.TotalMemory,
+					dbWorkstation.RamInfo.Speed,
+					dbWorkstation.RamInfo.Manufacturer,
+					dbWorkstation.OsInfo.Description,
+					dbWorkstation.OsInfo.OsManufacturer,
+					dbWorkstation.OsInfo.SerialNumber,
+					disks);
+
+				return WorkstationResponse.Create(wsItem, StandardResponse.CreateOkResponse());
 			}
-
-			return new WorkstationItem(
-				dbWorkstation.HostName,
-				dbWorkstation.Uuid,
-				dbWorkstation.CpuInfo.Description,
-				dbWorkstation.CpuInfo.Name,
-				dbWorkstation.CpuInfo.CpuManufacturer,
-				dbWorkstation.CpuInfo.Architecture,
-				dbWorkstation.RamInfo.TotalMemory,
-				dbWorkstation.RamInfo.Speed,
-				dbWorkstation.RamInfo.Manufacturer,
-				dbWorkstation.OsInfo.Description,
-				dbWorkstation.OsInfo.OsManufacturer,
-				dbWorkstation.OsInfo.SerialNumber,
-				disks);
+			catch (Exception e)
+			{
+				return WorkstationResponse.Create(null, StandardResponse.CreateInternalServerErrorResponse(e.Message));
+			}
 		}
 
 		[HttpGet("GetAllWorkstations")]

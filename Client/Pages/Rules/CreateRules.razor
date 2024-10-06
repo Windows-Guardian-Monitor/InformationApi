@@ -1,0 +1,121 @@
+﻿@page "/create_rule"
+@using ClientServer.Client.Operators
+@using System.Text.Json
+@using ClientServer.Client.Operators.Contracts
+@using ClientServer.Shared.Requests
+@using InformationHandlerApi.Business.Responses
+@using InformationHandlerApi.Database.Models
+
+<PageTitle>Criação de Regras</PageTitle>
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@inject ICustomSnackbarOperator _customSnackbarOperator;
+<ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_customSnackbarOperator" />
+<AuthorizeView>
+	<Authorized>
+		<h3>Selecione as aplicações para bloquear</h3>
+		@if (_programs is null)
+		{
+			<div>
+				Carregando programas...
+			</div>
+		}
+		else
+		{
+			<div style="margin-bottom:10px">
+				<label>Nome da regra:</label>
+				<input class="form-control" @bind="_ruleName" placeholder="Por favor crie um nome para esta regra" />
+			</div>
+			<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 0; margin: 0;">
+				<ul style="padding: 0; margin: 0; list-style: none;">
+					@foreach (var item in _programs)
+					{
+						<ClientServer.Client.Pages.Rules.RuleItems.ProgramToSelectItem Program="@item"></ClientServer.Client.Pages.Rules.RuleItems.ProgramToSelectItem>
+					}
+				</ul>
+			</div>
+
+
+			<Button @onclick=CreateRuleOnServer style="margin-top:10px" class="btn btn-primary">Criar regra</Button>
+		}
+	</Authorized>
+	<NotAuthorized>
+		<ClientServer.Client.Pages.Components.AccessDenied />
+	</NotAuthorized>
+</AuthorizeView>
+
+@code {
+	private List<DbRuleProgram> _programs;
+
+	private string _ruleName = string.Empty;
+
+	private async Task CreateRuleOnServer()
+	{
+		try
+		{
+			_customSnackbarOperator.Hide();
+
+			if (_programs.Any(p => p.Selected) is false)
+			{
+				_customSnackbarOperator.ShowWarningMessage("Por favor selecione pelo menos uma aplicação para criar uma regra.");
+				return;
+			}
+
+			if (string.IsNullOrWhiteSpace(_ruleName))
+			{
+				_customSnackbarOperator.ShowWarningMessage("Cada regra precisa ter um nome.");
+				return;
+			}
+
+			var selectedPrograms = _programs.Where(p => p.Selected).ToList();
+
+			const string endpoint = "Rules/Create";
+
+			var url = $"{InformationHandler.GetUrl()}{endpoint}";
+
+			var ruleRequest = new CreateRuleRequest(_ruleName, selectedPrograms);
+
+			var rawResponse = await Http.PostAsJsonAsync(url, JsonSerializer.SerializeToUtf8Bytes(ruleRequest));
+
+			var response = JsonSerializer.Deserialize<StandardResponse>(await rawResponse.Content.ReadAsStringAsync());
+
+			if (response.Success is false)
+			{
+				_customSnackbarOperator.ShowErrorMessage(response.Message);
+				return;
+			}
+
+			_customSnackbarOperator.ShowInformationMessage("Regra criada com sucesso", "Você será redirecionado(a) à página de regras gerais em instantes");
+
+			StateHasChanged();
+
+			await (new PeriodicTimer(TimeSpan.FromSeconds(3))).WaitForNextTickAsync();
+
+			NavigationManager.NavigateTo("rules");
+		}
+		catch (Exception e)
+		{
+			_customSnackbarOperator.ShowErrorMessage(e.Message);
+		}
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			const string endpoint = "Program";
+
+			var url = $"{InformationHandler.GetUrl()}{endpoint}";
+
+			var response = await Http.GetAsync(url);
+
+			var content = await response.Content.ReadAsStringAsync();
+
+			_programs = JsonSerializer.Deserialize<List<DbRuleProgram>>(content);
+		}
+		catch (Exception e)
+		{
+			_customSnackbarOperator.ShowErrorMessage(e.Message);
+		}
+	}
+}

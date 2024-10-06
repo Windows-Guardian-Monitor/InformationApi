@@ -1,0 +1,23 @@
+﻿@page "/"
+@using ClientServer.Client.BackgroundServices
+
+@inject StartupService _startupService
+
+<PageTitle>Home</PageTitle>
+
+<AuthorizeView>
+	<Authorized>
+		<h1>Seja bem vindo(a) ao Gerenciador Endpoint Protection</h1>
+	</Authorized>
+	<NotAuthorized>
+		<h1>Seja bem vindo(a) ao Gerenciador Endpoint Protection</h1>
+		<h2>Faça login para ter acesso às funcionalidades</h2>
+	</NotAuthorized>
+</AuthorizeView>
+
+@code{
+	protected override async Task OnInitializedAsync()
+	{
+		await _startupService.SetUpApplication();
+	}
+}

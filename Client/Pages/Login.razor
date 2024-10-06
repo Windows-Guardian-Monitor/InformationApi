@@ -1,0 +1,54 @@
+﻿@page "/login"
+@using ClientServer.Client.Models
+@using ClientServer.Client.Operators.Contracts
+@using ClientServer.Client.Services.Contracts
+@using ClientServer.Shared.DataTransferObjects.Authentication
+@using System.Text.Json
+@using ClientServer.Shared.Reponses
+@inject HttpClient Http
+@inject IUserSessionService _userSessionService
+@inject ICustomSnackbarOperator _snackbarOperator
+@inject NavigationManager NavigationManager
+<h3>Login</h3>
+<ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_snackbarOperator" />
+<EditForm Model="user" OnSubmit="HandleLogin">
+	<label for="userName">Nome de usuário</label>
+	<InputText id="username" @bind-Value="user.UserName" />
+
+	<label for="password">Senha</label>
+	<InputText id="password" @bind-Value="user.Password" type="password" />
+
+	<Button Type="ButtonType.Submit" Class="btn btn-primary">Entrar</Button>
+</EditForm>
+
+@code {
+	UserDto user = new UserDto();
+
+	async Task HandleLogin()
+	{
+		try
+		{
+			var result = await Http.PostAsJsonAsync("https://localhost:7102/auth/Login", user);
+
+			var json = await result.Content.ReadAsStringAsync();
+
+			var loginResponse = JsonSerializer.Deserialize<LoginResponse>(json);
+
+			if (loginResponse.Success is false)
+			{
+				_snackbarOperator.ShowErrorMessage(loginResponse.Message);
+				return;
+			}
+
+			var userSession = new UserSessionInformation(loginResponse.UserName, loginResponse.Role, loginResponse.JwtToken);
+
+			await _userSessionService.Login(userSession);
+
+			NavigationManager.NavigateTo("/");
+		}
+		catch (Exception e)
+		{
+			_snackbarOperator.ShowErrorMessage(e.Message);
+		}
+	}
+}

@@ -1,0 +1,26 @@
+﻿@using ClientServer.Client.Operators
+@using ClientServer.Client.Operators.Contracts
+@using Microsoft.AspNetCore.Components
+
+@if (SnackbarOperator.IsVisible)
+{
+	<div class="alert @SnackbarOperator.BannerClass alert-dismissible fade show" role="alert">
+		<p>@SnackbarOperator.Message</p>
+		<p class="small text-muted">@SnackbarOperator.SubMessage</p>
+		<button type="button" class="btn-close" @onclick="Hide" aria-label="Close"></button>
+	</div>
+}
+
+@code {
+	// [Parameter] public string Message { get; set; }
+	// [Parameter] public string BannerClass { get; set; } = "alert-info"; // Default to info style
+	// [Parameter] public bool IsVisible { get; set; } = false;
+	// [Parameter] public EventCallback<bool> IsVisibleChanged { get; set; }
+	[Parameter] public ICustomSnackbarOperator SnackbarOperator { get; set; }
+
+	private async Task Hide()
+	{
+		SnackbarOperator.IsVisible = false;
+		// await IsVisibleChanged.InvokeAsync(IsVisible);
+	}
+}
