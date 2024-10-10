@@ -22,6 +22,9 @@ namespace InformationHandlerApi
             builder.Services.AddHostedService<DatabaseHandlerService>();
 
             builder.Services.AddTransient<IEmailService, EmailService>();
+
+
+            builder.Services.AddTransient<ProcessFinishedRepository>();
             builder.Services.AddTransient<IWindowsWorkstationRepository, WindowsWorkstationRepository>();
             builder.Services.AddTransient<IProgramRepository, ProgramRepository>();
             builder.Services.AddTransient<IRuleRepository, RuleRepository>();

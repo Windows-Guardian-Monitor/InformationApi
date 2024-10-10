@@ -1,6 +1,8 @@
 ﻿using ClientServer.Shared.Database.Models.Authentication;
+using InformationHandlerApi.Business.Requests.Events;
 using InformationHandlerApi.Database.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 namespace InformationHandlerApi.Database;
 
 public class DatabaseContext : DbContext
@@ -31,4 +33,5 @@ public class DatabaseContext : DbContext
     public DbSet<DbProgram> Programs { get; set; }
     public DbSet<DbRule> Rules { get; set; }
     public DbSet<DbUser> Users { get; set; }
+	public DbSet<ProcessFinishedEvent> ProcessFinishedEvents { get; set; }
 }
