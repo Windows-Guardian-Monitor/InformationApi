@@ -1,18 +1,18 @@
 ﻿@page "/rules_home"
 <PageTitle>Regras</PageTitle>
 
-<AuthorizeView>
-	<Authorized>
-		<h3>Regras</h3>
-		<a class="btn btn-info" href="rules">Ver regras gerais</a>
-		<Button class="btn btn-info">Ver regras por máquina</Button>
-		<a class="btn btn-info" href="create_rule">Criar regra geral</a>
-		<Button class="btn btn-info">Criar regra para máquina</Button>
-	</Authorized>
-	<NotAuthorized>
-		<ClientServer.Client.Pages.Components.AccessDenied />
-	</NotAuthorized>
-</AuthorizeView>
+	<AuthorizeView>
+		<Authorized>
+			<h3>Regras</h3>
+			<a class="btn btn-info" href="rules">Ver regras gerais</a>
+			<Button class="btn btn-info">Ver regras por máquina</Button>
+			<a class="btn btn-info" href="create_rule">Criar regra geral</a>
+			<Button class="btn btn-info">Criar regra para máquina</Button>
+		</Authorized>
+		<NotAuthorized>
+			<ClientServer.Client.Pages.Components.AccessDenied />
+		</NotAuthorized>
+	</AuthorizeView>
 
 @code {
 

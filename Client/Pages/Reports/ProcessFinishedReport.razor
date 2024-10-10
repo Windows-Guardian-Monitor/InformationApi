@@ -1,0 +1,51 @@
+﻿@page "/reports_process"
+@using ClientServer.Client.Operators.Contracts
+@using ClientServer.Shared.Reponses
+@using ClientServer.Shared.Requests.Events
+@using System.Text.Json
+@inject ICustomSnackbarOperator _snackbarOperator
+@inject HttpClient Http
+<PageTitle>Processos Finalizados</PageTitle>
+<ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_snackbarOperator" />
+
+<AuthorizeView>
+    <NotAuthorized>
+        <ClientServer.Client.Pages.Components.AccessDenied />
+    </NotAuthorized>
+    <Authorized>
+
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            const string endpoint = "Events";
+
+            var url = $"{InformationHandler.GetUrl()}{endpoint}/GetEvents";
+
+            var response = await Http.PostAsJsonAsync(url, new EventsRequest()
+                {
+                    DateTime = new DateTime(1970, 1, 1)
+                });
+
+            var json = await response.Content.ReadAsStringAsync();
+
+            var events = JsonSerializer.Deserialize<EventsResponse>(json);
+
+            if (events?.Success is false)
+            {
+                _snackbarOperator.ShowErrorMessage(events.Message);
+                return;
+            }
+
+            //TODO Continuar aqui, preencher lista com eventos, a partir do componente EventComponent
+        }
+        catch (Exception e)
+        {
+            _snackbarOperator.ShowErrorMessage(e.Message);
+        }
+    }
+}

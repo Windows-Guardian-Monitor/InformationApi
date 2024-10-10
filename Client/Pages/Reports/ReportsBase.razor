@@ -1,0 +1,16 @@
+﻿@page "/reports_home"
+<PageTitle>Relatórios</PageTitle>
+
+<AuthorizeView>
+	<Authorized>
+		<h3>Relatórios Disponíveis</h3>
+		<a class="btn btn-info" href="reports_process">Ver relatório de processos finalizados</a>
+	</Authorized>
+	<NotAuthorized>
+		<ClientServer.Client.Pages.Components.AccessDenied />
+	</NotAuthorized>
+</AuthorizeView>
+
+@code {
+
+}

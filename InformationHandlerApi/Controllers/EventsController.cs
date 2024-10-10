@@ -1,18 +1,21 @@
-﻿using InformationHandlerApi.Business.Requests.Events;
+﻿using ClientServer.Shared.Database.Repositories;
+using ClientServer.Shared.Reponses;
+using ClientServer.Shared.Requests.Events;
+using InformationHandlerApi.Business.Requests.Events;
 using InformationHandlerApi.Business.Responses;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
 namespace InformationHandlerApi.Controllers
 {
-	[ApiController]
+    [ApiController]
 	[Route("[controller]")]
 	public class EventsController : Controller
 	{
-		
-		public EventsController()
+		private readonly ProcessFinishedRepository _processFinishedRepository;
+		public EventsController(ProcessFinishedRepository processFinishedRepository)
 		{
-			
+			_processFinishedRepository = processFinishedRepository;
 		}
 
 		[HttpPost("SendEvents")]
@@ -28,6 +31,21 @@ namespace InformationHandlerApi.Controllers
 			{
 				return StandardResponse.CreateInternalServerErrorResponse(e.Message);
 			}
+		}
+
+		[HttpPost("GetEvents")]
+		public ActionResult<EventsResponse> GetEvents(EventsRequest eventsRequest)
+		{
+			try
+			{
+				var events = _processFinishedRepository.GetByDate(eventsRequest.DateTime);
+
+                return new EventsResponse(events, string.Empty, true, System.Net.HttpStatusCode.OK);
+            }
+            catch (Exception e)
+			{
+                return new EventsResponse(null, e.Message, false, System.Net.HttpStatusCode.InternalServerError);
+            }
 		}
 	}
 }

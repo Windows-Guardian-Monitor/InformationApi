@@ -1,7 +1,6 @@
 ﻿using InformationHandlerApi.Business.Requests.Events;
 using InformationHandlerApi.Database;
 using InformationHandlerApi.Extensions;
-using System.Linq;
 
 namespace ClientServer.Shared.Database.Repositories
 {
@@ -24,7 +23,7 @@ namespace ClientServer.Shared.Database.Repositories
 		{
 			var processFinishedEvents = new List<ProcessFinishedEvent>();
 
-			var filteredEvents = _context.ProcessFinishedEvents.Where(p => IsWithinFilter(p.Timestamp, date));
+			var filteredEvents = _context.ProcessFinishedEvents.ToList().Where(p => IsWithinFilter(p.Timestamp, date));
 
 			return filteredEvents.ToList();
 		}
