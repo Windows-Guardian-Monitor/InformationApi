@@ -1,6 +1,7 @@
 ﻿@page "/workstations"
 <PageTitle>Máquinas</PageTitle>
 @using ClientServer.Shared.DataTransferObjects
+@using ClientServer.Shared.Reponses
 @inject HttpClient Http
 
 <AuthorizeView>
@@ -42,7 +43,9 @@
 		{
 			var url = $"{InformationHandler.GetUrl()}{_endpoint}";
 
-			_workstations = await Http.GetFromJsonAsync<List<SimpleWorkstationItem>>(url);
+			var response = await Http.GetFromJsonAsync<AllWorkstationsResponse>(url);
+
+			_workstations = response.Workstations;
 		}
 		catch (Exception e)
 		{

@@ -3,6 +3,7 @@ using ClientServer.Shared.Database.Models;
 using ClientServer.Shared.Reponses;
 using ClientServer.Shared.Requests;
 using ClientServer.Shared.Requests.Contracts;
+using ClientServer.Shared.Requests.Rules;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Text.Json;
@@ -64,6 +65,41 @@ namespace InformationHandlerApi.Controllers
 			{
 				return StandardResponse.CreateInternalServerErrorResponse(e.Message);
 			}
+		}
+
+		[HttpPost("CreateForWs")]
+		public StandardResponse CreateForWs(CreateWsSpecificRuleRequest wsSpecificRuleRequest)
+		{
+			try
+			{
+				var (valid, response) = ValidateWsSpecificRule(wsSpecificRuleRequest);
+
+				return StandardResponse.CreateOkResponse();
+			}
+			catch (Exception e)
+			{
+				return StandardResponse.CreateInternalServerErrorResponse(e.Message);
+			}
+		}
+
+		private (bool, StandardResponse) ValidateWsSpecificRule(CreateWsSpecificRuleRequest req)
+		{
+			if (string.IsNullOrEmpty(req.RuleName))
+			{
+				return (false, StandardResponse.CreateBadRequest("A regra precisa ter um nome"));
+			}
+
+			if (req.Workstations.Count is 0)
+			{
+				return (false, StandardResponse.CreateBadRequest("A regra precisa ter pelo menos uma máquina cadastrada"));
+			}
+
+			if (req.Programs.Count is 0)
+			{
+				return (false, StandardResponse.CreateBadRequest("A regra precisa ter pelo menos uma aplicação cadastrada"));
+			}
+
+			return (true, StandardResponse.CreateOkResponse());
 		}
 
 		[HttpPost("Update")]

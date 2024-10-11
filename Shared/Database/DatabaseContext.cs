@@ -2,7 +2,6 @@
 using ClientServer.Shared.Database.Models.Authentication;
 using ClientServer.Shared.Requests.Events;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query.Internal;
 namespace ClientServer.Shared.Database;
 
 public class DatabaseContext : DbContext

@@ -7,11 +7,11 @@
 
 @inject IUserSessionService _userSessionService
 @inject NavigationManager NavigationManager
+@inject HttpClient Http
+@inject ICustomSnackbarOperator _customSnackbarOperator
 
 <PageTitle>Lista de Usuários</PageTitle>
 
-@inject HttpClient Http
-@inject ICustomSnackbarOperator _customSnackbarOperator
 
 <ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_customSnackbarOperator" />
 <AuthorizeView>
@@ -64,19 +64,28 @@
 				}
 			</AuthorizeView>
 			<AuthorizeView Roles="Common" Context="commonCtx">
-				@if (Users.Count is 0)
+				@if (Users is null)
 				{
 					<div>
-						Não foi possivel buscar os usuários
+						Buscando usuários...
 					</div>
 				}
 				else
 				{
-					@foreach (var user in Users)
+					@if (Users.Count is 0)
 					{
-						<div class="rounded border" style="margin: 10px">
-							<UserComponent User="user" />
+						<div>
+							Não foi possivel buscar os usuários
 						</div>
+					}
+					else
+					{
+						@foreach (var user in Users)
+						{
+							<div class="rounded border" style="margin: 10px">
+								<UserComponent User="user" />
+							</div>
+						}
 					}
 				}
 			</AuthorizeView>
