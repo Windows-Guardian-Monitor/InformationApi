@@ -5,38 +5,55 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.Forms
 @using System.Net.Http.Json
+
 @inject ICustomSnackbarOperator _snackbarOperator
 @inject HttpClient Http
 
 <AuthorizeView Roles="Administrator" Context="authenticationContext">
 	<Authorized>
-		<ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_snackbarOperator" />
-		<EditForm Model="userModel" OnValidSubmit="HandleValidSubmit">
-			<div class="form-group">
-				<label for="username">Nome de usuário</label>
-				<InputText id="username" class="form-control" @bind-Value="userModel.UserName" />
-				<ValidationMessage For="@(() => userModel.UserName)" class="text-danger" />
-			</div>
+		@if (IsLoading)
+		{
+			<SpinLoader IsLoading="IsLoading">
+				<LoadingTemplate>
+					<div style="align-content: center">
+					@* <div style="background-color: lightgray; align-content: center; height:100vh; margin-right: 10px"> *@
+					@* <div style="background-color: lightgray; height: 100%; width:100%; align-content: center; height:100vh; width: 100vw; margin-right: 10px"> *@
+					@* <div style="background-color: lightgray; height: 100%; width:100%; align-content: center; position: fixed;"> *@
+						<Chase Center="true" Color="#337AB7" />
+					</div>
+				</LoadingTemplate>
+			</SpinLoader>
+		}
+		else
+		{
+			<ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_snackbarOperator" />
+			<EditForm Model="userModel" OnValidSubmit="HandleValidSubmit">
+				<div class="form-group">
+					<label for="username">Nome de usuário</label>
+					<InputText id="username" class="form-control" @bind-Value="userModel.UserName" />
+					<ValidationMessage For="@(() => userModel.UserName)" class="text-danger" />
+				</div>
 
-			<div class="form-group">
-				<label for="email">E-mail</label>
-				<InputText id="email" type="email" class="form-control" @bind-Value="userModel.Email" />
-				<ValidationMessage For="@(() => userModel.Email)" class="text-danger" />
-			</div>
+				<div class="form-group">
+					<label for="email">E-mail</label>
+					<InputText id="email" type="email" class="form-control" @bind-Value="userModel.Email" />
+					<ValidationMessage For="@(() => userModel.Email)" class="text-danger" />
+				</div>
 
-			@* <div class="form-group">
-				<label for="password">Senha</label>
-				<InputText id="password" type="password" class="form-control" @bind-Value="userModel.Password" />
-				<ValidationMessage For="@(() => userModel.Password)" class="text-danger" />
+				@* <div class="form-group">
+			<label for="password">Senha</label>
+			<InputText id="password" type="password" class="form-control" @bind-Value="userModel.Password" />
+			<ValidationMessage For="@(() => userModel.Password)" class="text-danger" />
 			</div> *@
 
-			<div class="form-check">
-				<InputCheckbox id="isAdmin" class="form-check-input" @bind-Value="userModel.IsAdmin" />
-				<label class="form-check-label" for="isAdmin">É administrador</label>
-			</div>
+				<div class="form-check">
+					<InputCheckbox id="isAdmin" class="form-check-input" @bind-Value="userModel.IsAdmin" />
+					<label class="form-check-label" for="isAdmin">É administrador</label>
+				</div>
 
-			<button type="submit" class="btn btn-primary mt-3">Registrar</button>
-		</EditForm>
+				<button type="submit" class="btn btn-primary mt-3">Registrar</button>
+			</EditForm>
+		}
 	</Authorized>
 	<NotAuthorized>
 		<ClientServer.Client.Pages.Components.AccessDenied />
@@ -46,10 +63,14 @@
 @code {
 	private UserDto userModel = new UserDto();
 
+	public bool IsLoading { get; set; }
+
 	private async Task HandleValidSubmit()
 	{
 		try
 		{
+			IsLoading = true;
+
 			_snackbarOperator.Hide();
 
 			if (
@@ -81,6 +102,10 @@
 		catch (Exception e)
 		{
 			_snackbarOperator.ShowErrorMessage(e.Message);
+		}
+		finally
+		{
+			IsLoading = false;
 		}
 	}
 }
