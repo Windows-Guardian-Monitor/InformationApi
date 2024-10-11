@@ -4,9 +4,16 @@
 	{
 		private readonly Dictionary<string, object> ValueDictionary;
 
+		public string UserName { get; private set; }
+
         public PageNavigationHelper()
         {
 			ValueDictionary = new();
+		}
+
+		public void SetUserName(string userName)
+		{
+			UserName = userName;
 		}
 
         public string AddValue<T>(T value) where T : class

@@ -25,6 +25,9 @@ namespace ClientServer.Shared.Database.Repositories
 
 		public DbUser GetUserByEmail(string email) => _context.Users.FirstOrDefault(u => u.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
 
+		public List<DbUser> GetAll() => _context.Users.ToList();
+
+
 		public void SetUserAlreadyLoggedIn(DbUser dbUser)
 		{
 			dbUser.HasLoggedIn = true;

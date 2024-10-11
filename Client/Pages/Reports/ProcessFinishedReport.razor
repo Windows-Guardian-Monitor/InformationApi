@@ -15,10 +15,9 @@
 	</NotAuthorized>
 	<Authorized>
 		<h3>Processos finalizados por data</h3>
-		<div class="mb-3">
-			<DateInput TValue="DateOnly" @bind-Value="@_dateChosen" Placeholder="Por favor escolha uma data" />
-		</div>
+		
 		<div class="d-flex flex-column align-items-start p-3 rounded border">
+			<DateInput TValue="DateOnly" @bind-Value="@_dateChosen" Placeholder="Por favor escolha uma data" />
 			Data escolhida: @_dateChosen
 			<Button @onclick="@FetchEvents" class="btn btn-info">Buscar eventos</Button>
 		</div>

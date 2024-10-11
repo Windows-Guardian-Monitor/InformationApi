@@ -11,5 +11,6 @@ namespace ClientServer.Shared.Contracts.Repositories
 		void SetUserAlreadyLoggedIn(DbUser dbUser);
         bool ExistsByEmail(string email);
         void Update(DbUser dbUser);
+        public List<DbUser> GetAll();
 	}
 }

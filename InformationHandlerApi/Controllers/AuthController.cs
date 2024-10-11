@@ -2,10 +2,10 @@
 using ClientServer.Shared.Database.Models.Authentication;
 using ClientServer.Shared.DataTransferObjects.Authentication;
 using ClientServer.Shared.Reponses;
+using ClientServer.Shared.Requests.User;
 using InformationHandlerApi.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using PasswordGenerator;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
@@ -264,6 +264,31 @@ namespace InformationHandlerApi.Controllers
 				var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
 
 				return computedHash.SequenceEqual(passwordHash);
+			}
+		}
+
+		[HttpPost("GetAllUsers")]
+		public async Task<UsersResponse> GetAllUsers(UserListRequest userListRequest)
+		{
+			try
+			{
+				var users = _userRepository.GetAll().Select(u => new DbUserWithoutPassword
+				{
+					Email = u.Email,
+					IsAdmin = u.Role.Equals("Administrator", StringComparison.OrdinalIgnoreCase) ? true : false,
+					UserName = u.UserName
+				}).ToList();
+
+				if (users == null || users.Count is 0)
+				{
+					return new UsersResponse(null, "Não foi possível encontrar os usuários", false, HttpStatusCode.OK);
+				}
+
+				return new UsersResponse(users, string.Empty, false, HttpStatusCode.OK);
+			}
+			catch (Exception e)
+			{
+				return new UsersResponse(null, e.Message, false, HttpStatusCode.OK);
 			}
 		}
 	}

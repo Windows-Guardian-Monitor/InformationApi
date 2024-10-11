@@ -1,0 +1,93 @@
+﻿@page "/users"
+@using ClientServer.Client.Operators.Contracts
+@using ClientServer.Client.Services.Contracts
+@using ClientServer.Shared.Database.Models.Authentication
+@using ClientServer.Shared.Reponses
+@using ClientServer.Shared.Requests.User
+
+@inject IUserSessionService _userSessionService
+
+<PageTitle>Lista de Usuários</PageTitle>
+
+@inject HttpClient Http
+@inject ICustomSnackbarOperator _customSnackbarOperator
+
+<ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_customSnackbarOperator" />
+<AuthorizeView>
+	<NotAuthorized>
+		<ClientServer.Client.Pages.Components.AccessDenied />
+	</NotAuthorized>
+	<Authorized>
+		@if (Users.Count is 0)
+		{
+			<div>
+				Não foi possivel buscar os usuários
+			</div>
+		}
+		else
+		{
+			@foreach (var user in Users)
+			{
+				<UserComponent User="user"/>
+			}
+		}
+	</Authorized>
+</AuthorizeView>
+
+@code {
+
+	private List<DbUserWithoutPassword> Users { get; set; } = new List<DbUserWithoutPassword>();
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			Users = new List<DbUserWithoutPassword>();
+
+			const string endpoint = "Auth";
+
+			var url = $"{InformationHandler.GetUrl()}{endpoint}/GetAllUsers";
+
+			var sessionInfo = await _userSessionService.GetSessionInformationAsync();
+
+			if (sessionInfo is null)
+			{
+				return;
+			}
+
+			var isAdmin = sessionInfo.Role.Equals("Administrator", StringComparison.OrdinalIgnoreCase) ? true : false;
+
+			var userListReq = new UserListRequest()
+				{
+					IsRequestFromAdmin = isAdmin
+				};
+
+			var response = await Http.PostAsJsonAsync(url, userListReq);
+
+			var json = await response.Content.ReadAsStringAsync();
+
+			var userResponse = JsonSerializer.Deserialize<UsersResponse>(json);
+
+			if (userResponse is null)
+			{
+				throw new Exception("Não foi possível obter os usuários");
+			}
+
+			userResponse.Users = userResponse.Users.OrderBy(u => u.UserName).ToList();
+
+			foreach (var user in userResponse.Users)
+			{
+				if (user.UserName.Equals(sessionInfo.UserName, StringComparison.OrdinalIgnoreCase) || user.UserName.Equals("admin", StringComparison.OrdinalIgnoreCase))
+				{
+					continue;
+				}
+
+				Users.Add(user);
+			}
+		}
+		catch (Exception e)
+		{
+			_customSnackbarOperator.ShowErrorMessage(e.Message);
+		}
+	}
+}

@@ -6,5 +6,6 @@ namespace ClientServer.Client.Services.Contracts
     {
         Task Login(UserSessionInformation userSessionInformation);
         Task Logout();
+        Task<UserSessionInformation> GetSessionInformationAsync();
 	}
 }

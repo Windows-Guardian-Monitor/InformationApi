@@ -1,7 +1,11 @@
 ﻿@page "/"
 @using ClientServer.Client.BackgroundServices
+@using ClientServer.Client.Services
+@using ClientServer.Client.Services.Contracts
 
 @inject StartupService _startupService
+@inject PageNavigationHelper _pageNavigationHelper
+@inject IUserSessionService _userSessionService
 
 <PageTitle>Home</PageTitle>
 
@@ -19,5 +23,14 @@
 	protected override async Task OnInitializedAsync()
 	{
 		await _startupService.SetUpApplication();
+
+		var session = await _userSessionService.GetSessionInformationAsync();
+
+		if (session is not null)
+		{
+			_pageNavigationHelper.SetUserName(session.UserName);
+			StateHasChanged();
+		}
+	
 	}
 }

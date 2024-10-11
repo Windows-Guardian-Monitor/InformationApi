@@ -1,6 +1,7 @@
 ﻿@page "/login"
 @using ClientServer.Client.Models
 @using ClientServer.Client.Operators.Contracts
+@using ClientServer.Client.Services
 @using ClientServer.Client.Services.Contracts
 @using ClientServer.Shared.DataTransferObjects.Authentication
 @using System.Text.Json
@@ -9,6 +10,8 @@
 @inject IUserSessionService _userSessionService
 @inject ICustomSnackbarOperator _snackbarOperator
 @inject NavigationManager NavigationManager
+@inject PageNavigationHelper _pageNavigationHelper
+
 <PageTitle>Login</PageTitle>
 <ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_snackbarOperator" />
 <AuthorizeView>
@@ -65,7 +68,7 @@
 
 			await _userSessionService.Login(userSession);
 
-			NavigationManager.NavigateTo("/");
+			NavigationManager.NavigateTo("/");			
 		}
 		catch (Exception e)
 		{
