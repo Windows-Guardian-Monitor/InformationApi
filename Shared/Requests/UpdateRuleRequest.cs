@@ -1,5 +1,5 @@
-﻿using ClientServer.Shared.Requests.Contracts;
-using InformationHandlerApi.Database.Models;
+﻿using ClientServer.Shared.Database.Models;
+using ClientServer.Shared.Requests.Contracts;
 using System.Text.Json.Serialization;
 
 namespace ClientServer.Shared.Requests

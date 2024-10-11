@@ -1,8 +1,7 @@
-﻿using ClientServer.Shared.DataTransferObjects;
+﻿using ClientServer.Shared.Contracts.Repositories;
+using ClientServer.Shared.Database.Models;
+using ClientServer.Shared.DataTransferObjects;
 using ClientServer.Shared.Reponses;
-using InformationHandlerApi.Business.Responses;
-using InformationHandlerApi.Contracts.Repositories;
-using InformationHandlerApi.Database.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Text.Json;

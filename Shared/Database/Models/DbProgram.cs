@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
-namespace InformationHandlerApi.Database.Models
+namespace ClientServer.Shared.Database.Models
 {
 	public class DbProgram
 	{
@@ -12,12 +12,12 @@ namespace InformationHandlerApi.Database.Models
 			Hash = hash;
 		}
 
-        public DbProgram()
-        {
-            
-        }
+		public DbProgram()
+		{
 
-        [Key]
+		}
+
+		[Key]
 		[JsonPropertyName("Id")]
 		public int Id { get; set; }
 

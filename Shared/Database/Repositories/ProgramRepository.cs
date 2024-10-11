@@ -1,9 +1,10 @@
-﻿using InformationHandlerApi.Contracts.Repositories;
-using InformationHandlerApi.Database.Models;
+﻿using ClientServer.Shared.Contracts.Repositories;
+using ClientServer.Shared.Database;
+using ClientServer.Shared.Database.Models;
 
-namespace InformationHandlerApi.Database.Repositories
+namespace ClientServer.Shared.Database.Repositories
 {
-    public class ProgramRepository : IProgramRepository
+	public class ProgramRepository : IProgramRepository
 	{
 		private readonly DatabaseContext _context;
 

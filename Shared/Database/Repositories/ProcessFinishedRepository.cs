@@ -1,6 +1,5 @@
-﻿using InformationHandlerApi.Business.Requests.Events;
-using InformationHandlerApi.Database;
-using InformationHandlerApi.Extensions;
+﻿using ClientServer.Shared.Extensions;
+using ClientServer.Shared.Requests.Events;
 
 namespace ClientServer.Shared.Database.Repositories
 {
@@ -19,7 +18,7 @@ namespace ClientServer.Shared.Database.Repositories
 			_context.SaveChanges();
 		}
 
-		public List<ProcessFinishedEvent> GetByDate(DateTime date)
+		public List<ProcessFinishedEvent> GetByDate(CustomDate date)
 		{
 			var processFinishedEvents = new List<ProcessFinishedEvent>();
 
@@ -28,7 +27,7 @@ namespace ClientServer.Shared.Database.Repositories
 			return filteredEvents.ToList();
 		}
 
-		private bool IsWithinFilter(long timestamp, DateTime date)
+		private bool IsWithinFilter(long timestamp, CustomDate date)
 		{
 			var d = timestamp.TimestampToDatetime();
 

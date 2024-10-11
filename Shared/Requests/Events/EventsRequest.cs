@@ -2,6 +2,6 @@
 {
     public class EventsRequest
     {
-        public DateTime DateTime { get; set; }
+        public CustomDate CustomDate { get; set; }
     }
 }

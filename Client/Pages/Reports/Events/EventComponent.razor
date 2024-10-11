@@ -1,5 +1,24 @@
-﻿
+﻿@using ClientServer.Client.Models
+<div>
+	<div class="card mb-2 shadow-sm" style="margin: 10px">
+		<div class="card-body p-2 d-flex justify-content-between">
+			<div>
+				<strong>Machine Name:</strong> @ProcessFinishedEvent.MachineName
+				<div>
+					<strong>User:</strong> @ProcessFinishedEvent.Domain\@ProcessFinishedEvent.UserName
+				</div>
+				<div>
+					<strong>Date:</strong> @ProcessFinishedEvent.DateTime.ToString("dd/MM/yyyy HH:mm:ss")
+				</div>
+				<div>
+					<strong>Program Path:</strong> @ProcessFinishedEvent.ProgramPath
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
 
 @code {
-
+	[Parameter]
+	public ScreenEvent ProcessFinishedEvent { get; set; }
 }

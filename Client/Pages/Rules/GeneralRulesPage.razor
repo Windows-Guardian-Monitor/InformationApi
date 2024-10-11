@@ -1,13 +1,10 @@
 ﻿@page "/rules"
-@using System.Text.Json
 @using ClientServer.Client.Operators.Contracts
-@using ClientServer.Client.Pages.Rules.RuleItems
 @using ClientServer.Client.Services
+@using ClientServer.Shared.Database.Models
 @using ClientServer.Shared.Reponses
 @using ClientServer.Shared.Requests
-@using InformationHandlerApi.Business.Responses
-@using InformationHandlerApi.Contracts.Repositories
-@using InformationHandlerApi.Database.Models
+
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsRuntime

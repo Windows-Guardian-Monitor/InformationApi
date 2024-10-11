@@ -1,15 +1,13 @@
 using ClientServer.Shared.Contracts.Repositories;
+using ClientServer.Shared.Database;
 using ClientServer.Shared.Database.Repositories;
 using InformationHandlerApi.Contracts;
-using InformationHandlerApi.Contracts.Repositories;
-using InformationHandlerApi.Database;
-using InformationHandlerApi.Database.Repositories;
 using InformationHandlerApi.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace InformationHandlerApi
 {
-    public class Program
+	public class Program
     {
         private static void ConfigureServices(WebApplicationBuilder builder)
         {

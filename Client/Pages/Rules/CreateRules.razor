@@ -3,13 +3,14 @@
 @using System.Text.Json
 @using ClientServer.Client.Operators.Contracts
 @using ClientServer.Shared.Requests
-@using InformationHandlerApi.Business.Responses
-@using InformationHandlerApi.Database.Models
+@using ClientServer.Shared.Reponses
+@using ClientServer.Shared.Database.Models
 
 <PageTitle>Criação de Regras</PageTitle>
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
-@inject ICustomSnackbarOperator _customSnackbarOperator;
+@inject ICustomSnackbarOperator _customSnackbarOperator
+
 <ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_customSnackbarOperator" />
 <AuthorizeView>
 	<Authorized>

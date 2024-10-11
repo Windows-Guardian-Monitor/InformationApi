@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-
-namespace InformationHandlerApi.Extensions
+﻿namespace ClientServer.Shared.Extensions
 {
 	public static class LongExtensions
 	{

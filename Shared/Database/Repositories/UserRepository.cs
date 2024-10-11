@@ -1,6 +1,5 @@
 ﻿using ClientServer.Shared.Contracts.Repositories;
 using ClientServer.Shared.Database.Models.Authentication;
-using InformationHandlerApi.Database;
 
 namespace ClientServer.Shared.Database.Repositories
 {

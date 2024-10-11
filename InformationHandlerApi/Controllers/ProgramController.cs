@@ -1,7 +1,7 @@
-﻿using InformationHandlerApi.Business.Requests;
-using InformationHandlerApi.Business.Responses;
-using InformationHandlerApi.Contracts.Repositories;
-using InformationHandlerApi.Database.Models;
+﻿using ClientServer.Shared.Contracts.Repositories;
+using ClientServer.Shared.Database.Models;
+using ClientServer.Shared.Reponses;
+using InformationHandlerApi.Business.Requests;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 

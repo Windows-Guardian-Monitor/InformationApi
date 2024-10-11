@@ -2,7 +2,6 @@
 using ClientServer.Shared.Database.Models.Authentication;
 using ClientServer.Shared.DataTransferObjects.Authentication;
 using ClientServer.Shared.Reponses;
-using InformationHandlerApi.Business.Responses;
 using InformationHandlerApi.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;

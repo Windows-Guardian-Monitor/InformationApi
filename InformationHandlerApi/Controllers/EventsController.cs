@@ -1,14 +1,12 @@
 ﻿using ClientServer.Shared.Database.Repositories;
 using ClientServer.Shared.Reponses;
 using ClientServer.Shared.Requests.Events;
-using InformationHandlerApi.Business.Requests.Events;
-using InformationHandlerApi.Business.Responses;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
 namespace InformationHandlerApi.Controllers
 {
-    [ApiController]
+	[ApiController]
 	[Route("[controller]")]
 	public class EventsController : Controller
 	{
@@ -25,6 +23,13 @@ namespace InformationHandlerApi.Controllers
 			{
 				var events = JsonSerializer.Deserialize<ProcessFinishedEvent[]>(eventRequest);
 
+				if (events == null || events.Length is 0)
+				{
+					return StandardResponse.CreateOkResponse();
+				}
+
+				_processFinishedRepository.InsertMany(events);
+
 				return StandardResponse.CreateOkResponse();
 			}
 			catch (Exception e)
@@ -38,14 +43,14 @@ namespace InformationHandlerApi.Controllers
 		{
 			try
 			{
-				var events = _processFinishedRepository.GetByDate(eventsRequest.DateTime);
+				var events = _processFinishedRepository.GetByDate(eventsRequest.CustomDate);
 
-                return new EventsResponse(events, string.Empty, true, System.Net.HttpStatusCode.OK);
-            }
-            catch (Exception e)
+				return new EventsResponse(events, string.Empty, true, System.Net.HttpStatusCode.OK);
+			}
+			catch (Exception e)
 			{
-                return new EventsResponse(null, e.Message, false, System.Net.HttpStatusCode.InternalServerError);
-            }
+				return new EventsResponse(null, e.Message, false, System.Net.HttpStatusCode.InternalServerError);
+			}
 		}
 	}
 }

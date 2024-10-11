@@ -1,51 +1,103 @@
 ﻿@page "/reports_process"
+@using ClientServer.Client.Models
 @using ClientServer.Client.Operators.Contracts
 @using ClientServer.Shared.Reponses
 @using ClientServer.Shared.Requests.Events
-@using System.Text.Json
+@using ClientServer.Shared.Extensions
 @inject ICustomSnackbarOperator _snackbarOperator
 @inject HttpClient Http
 <PageTitle>Processos Finalizados</PageTitle>
 <ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_snackbarOperator" />
 
 <AuthorizeView>
-    <NotAuthorized>
-        <ClientServer.Client.Pages.Components.AccessDenied />
-    </NotAuthorized>
-    <Authorized>
-
-    </Authorized>
+	<NotAuthorized>
+		<ClientServer.Client.Pages.Components.AccessDenied />
+	</NotAuthorized>
+	<Authorized>
+		<h3>Processos finalizados por data</h3>
+		<div class="mb-3">
+			<DateInput TValue="DateOnly" @bind-Value="@_dateChosen" Placeholder="Por favor escolha uma data" />
+		</div>
+		<div class="d-flex flex-column align-items-start p-3 rounded border">
+			Data escolhida: @_dateChosen
+			<Button @onclick="@FetchEvents" class="btn btn-info">Buscar eventos</Button>
+		</div>
+		@if (_events.Count is 0)
+		{
+			<div style="margin-top: 10px">
+				Não há eventos encontrados nesta data
+			</div>
+		}
+		else
+		{
+			<div style="overflow-y: auto; border: 1px solid #ddd; padding: 0; margin-top: 10px;" class="rounded border">
+				<ul style="padding: 0; margin: 0; list-style: none;">
+					@foreach (var item in _events)
+					{
+						<ClientServer.Client.Pages.Reports.Events.EventComponent ProcessFinishedEvent="item" />
+					}
+				</ul>
+			</div>
+		}
+	</Authorized>
 </AuthorizeView>
 
 @code {
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
+	private DateOnly _dateChosen = DateOnly.FromDateTime(DateTime.Now);
+
+	private List<ScreenEvent> _events = new List<ScreenEvent>();
+
+	private async Task LoadEvents()
+	{
+		try
+		{
+			_events = new List<ScreenEvent>();
+
             const string endpoint = "Events";
 
             var url = $"{InformationHandler.GetUrl()}{endpoint}/GetEvents";
 
+            var customDate = new CustomDate()
+				{
+					Day = _dateChosen.Day,
+					Month = _dateChosen.Month,
+					Year = _dateChosen.Year
+				};
+
             var response = await Http.PostAsJsonAsync(url, new EventsRequest()
-                {
-                    DateTime = new DateTime(1970, 1, 1)
-                });
+				{
+					CustomDate = customDate
+				});
 
             var json = await response.Content.ReadAsStringAsync();
 
-            var events = JsonSerializer.Deserialize<EventsResponse>(json);
+            var eventsResponse = JsonSerializer.Deserialize<EventsResponse>(json);
 
-            if (events?.Success is false)
+            if (eventsResponse?.Success is false)
             {
-                _snackbarOperator.ShowErrorMessage(events.Message);
+                _snackbarOperator.ShowErrorMessage(eventsResponse.Message);
                 return;
             }
 
-            //TODO Continuar aqui, preencher lista com eventos, a partir do componente EventComponent
+            foreach (var e in eventsResponse.Events)
+            {
+                _events.Add(new ScreenEvent
+					{
+						DateTime = e.Timestamp.TimestampToDatetime(),
+						Domain = e.Domain,
+						UserName = e.UserName,
+						MachineName = e.MachineName,
+						ProgramPath = e.ProgramPath
+					});
+            }
         }
         catch (Exception e)
         {
             _snackbarOperator.ShowErrorMessage(e.Message);
         }
     }
+
+    private async Task FetchEvents() => await LoadEvents();
+
+    protected override async Task OnInitializedAsync() => await LoadEvents();
 }

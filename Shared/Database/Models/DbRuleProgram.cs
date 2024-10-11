@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
-namespace InformationHandlerApi.Database.Models
+namespace ClientServer.Shared.Database.Models
 {
 	public class DbRuleProgram
 	{
@@ -13,10 +13,10 @@ namespace InformationHandlerApi.Database.Models
 			Hash = hash;
 		}
 
-        public DbRuleProgram()
-        {
-            
-        }
+		public DbRuleProgram()
+		{
+
+		}
 
 		[Key]
 		[JsonPropertyName("Id")]
@@ -30,16 +30,16 @@ namespace InformationHandlerApi.Database.Models
 
 		[JsonPropertyName("Hash")]
 		public string Hash { get; set; }
-		
+
 
 		[JsonPropertyName("Selected")]
 		[NotMapped]
-        public bool Selected { get; set; }
+		public bool Selected { get; set; }
 
 
 
 		[ForeignKey("RuleId")]
 		[JsonIgnore]
-        public DbRule ForeignRule { get; set; }
-    }
+		public DbRule ForeignRule { get; set; }
+	}
 }

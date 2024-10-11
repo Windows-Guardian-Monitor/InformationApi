@@ -1,9 +1,9 @@
 ﻿
-using InformationHandlerApi.Database;
+using ClientServer.Shared.Database;
 
 namespace InformationHandlerApi.Services
 {
-    public class DatabaseHandlerService : BackgroundService
+	public class DatabaseHandlerService : BackgroundService
     {
         private readonly IServiceScopeFactory _scopeFactory;
 

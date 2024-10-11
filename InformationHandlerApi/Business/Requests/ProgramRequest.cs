@@ -1,5 +1,5 @@
 ﻿using ClientServer.Shared.Contracts;
-using InformationHandlerApi.Database.Models;
+using ClientServer.Shared.Database.Models;
 using System.Text.Json.Serialization;
 
 namespace InformationHandlerApi.Business.Requests
