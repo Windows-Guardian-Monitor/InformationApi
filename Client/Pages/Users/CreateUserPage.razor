@@ -1,5 +1,6 @@
 ﻿@page "/create_user"
 @using ClientServer.Client.Operators.Contracts
+@using ClientServer.Client.Pages.Components
 @using ClientServer.Shared.DataTransferObjects.Authentication
 @using ClientServer.Shared.Reponses
 @using Microsoft.AspNetCore.Components.Authorization
@@ -13,16 +14,7 @@
 	<Authorized>
 		@if (IsLoading)
 		{
-			<SpinLoader IsLoading="IsLoading">
-				<LoadingTemplate>
-					<div style="align-content: center">
-					@* <div style="background-color: lightgray; align-content: center; height:100vh; margin-right: 10px"> *@
-					@* <div style="background-color: lightgray; height: 100%; width:100%; align-content: center; height:100vh; width: 100vw; margin-right: 10px"> *@
-					@* <div style="background-color: lightgray; height: 100%; width:100%; align-content: center; position: fixed;"> *@
-						<Chase Center="true" Color="#337AB7" />
-					</div>
-				</LoadingTemplate>
-			</SpinLoader>
+			<LoadingComponent />
 		}
 		else
 		{

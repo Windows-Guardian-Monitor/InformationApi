@@ -11,20 +11,29 @@
 		<h3>Esta tela só pode ser acessada enquanto você não estiver logado</h3>
 	</Authorized>
 	<NotAuthorized Context="notAuthorizedContext">
-		<ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_snackbarOperator" />
-		<h3>Resetar a senha</h3>
+		@if (_isLoading)
+		{
+			<ClientServer.Client.Pages.Components.LoadingComponent />
+		}
+		else
+		{
+			<ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_snackbarOperator" />
+			<h3>Resetar a senha</h3>
 
-		<EditForm Context="notAuthorizedContextEditForm" Model="resetPasswordDto" OnSubmit="HandlePasswordReset">
-			<InputText type="email" id="email" @bind-Value="resetPasswordDto.Email" style="width: 500px" />
+			<EditForm Context="notAuthorizedContextEditForm" Model="resetPasswordDto" OnSubmit="HandlePasswordReset">
+				<InputText type="email" id="email" @bind-Value="resetPasswordDto.Email" style="width: 500px" />
 
-			<Button Type="ButtonType.Submit" Class="btn btn-primary">Enviar e-mail</Button>
-		</EditForm>
+				<Button Type="ButtonType.Submit" Class="btn btn-primary">Enviar e-mail</Button>
+			</EditForm>
+		}
 	</NotAuthorized>
 </AuthorizeView>
 
 
 @code {
 	ResetPasswordDto resetPasswordDto = new ResetPasswordDto();
+
+	private bool _isLoading = false;
 
 	protected override Task OnInitializedAsync()
 	{
@@ -38,6 +47,8 @@
 	{
 		try
 		{
+			_isLoading = true;
+
 			var result = await Http.PostAsJsonAsync("https://localhost:7102/auth/ResetPassword", resetPasswordDto);
 
 			var json = await result.Content.ReadAsStringAsync();
@@ -55,6 +66,10 @@
 		catch (Exception e)
 		{
 			_snackbarOperator.ShowErrorMessage(e.Message);
+		}
+		finally
+		{
+			_isLoading = false;
 		}
 	}
 }

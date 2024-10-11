@@ -20,64 +20,73 @@
 	</NotAuthorized>
 	<Authorized>
 		<h3>Lista de Usuários</h3>
-		<AuthorizeView Roles="Administrator" Context="adminCtx">
-			@if (ShowDeleteConfirmation)
-			{
-				<ClientServer.Client.Pages.Components.Confirmation.CustomMBox Title="Confirmar deleção de usuário"
-																			  Message="Tem certeza que deseja apagar este usuário?"
-																			  OnConfirm="DeleteUser"
-																			  OnCancel="CancelAction" />
-			}
-
-			@if (ShowResetPasswordConfirmation)
-			{
-				<ClientServer.Client.Pages.Components.Confirmation.CustomMBox Title="Confirmar troca de senha do usuário"
-																			  Message="Tem certeza que deseja trocar a senha deste usuário?"
-																			  OnConfirm="ResetUserPassword"
-																			  OnCancel="CancelAction" />
-			}
-
-			@if (Users.Count is 0)
-			{
-				<div>
-					Não foi possivel buscar os usuários
-				</div>
-			}
-			else
-			{
-				@foreach (var user in Users)
+		@if (_isLoading)
+		{
+			<ClientServer.Client.Pages.Components.LoadingComponent />
+		}
+		else
+		{
+			<AuthorizeView Roles="Administrator" Context="adminCtx">
+				@if (ShowDeleteConfirmation)
 				{
-					<div class="rounded border" style="margin: 10px">
-						<UserComponent User="user" />
-						<div style="margin: 10px">
-							<Button class="btn btn-warning btn-sm mx-1" @onclick="() => SetUpdateConfirmationDate(user.Id)">Trocar senha</Button>
-							<Button class="btn btn-danger btn-sm mx-1" @onclick="() => SetDeleteConfirmationDate(user.Id)">Apagar usuário</Button>
+					<ClientServer.Client.Pages.Components.Confirmation.CustomMBox Title="Confirmar deleção de usuário"
+																				  Message="Tem certeza que deseja apagar este usuário?"
+																				  OnConfirm="DeleteUser"
+																				  OnCancel="CancelAction" />
+				}
+
+				@if (ShowResetPasswordConfirmation)
+				{
+					<ClientServer.Client.Pages.Components.Confirmation.CustomMBox Title="Confirmar troca de senha do usuário"
+																				  Message="Tem certeza que deseja trocar a senha deste usuário?"
+																				  OnConfirm="ResetUserPassword"
+																				  OnCancel="CancelAction" />
+				}
+
+				@if (Users.Count is 0)
+				{
+					<div>
+						Não foi possivel buscar os usuários
+					</div>
+				}
+				else
+				{
+					@foreach (var user in Users)
+					{
+						<div class="rounded border" style="margin: 10px">
+							<UserComponent User="user" />
+							<div style="margin: 10px">
+								<Button class="btn btn-warning btn-sm mx-1" @onclick="() => SetUpdateConfirmationDate(user.Id)">Trocar senha</Button>
+								<Button class="btn btn-danger btn-sm mx-1" @onclick="() => SetDeleteConfirmationDate(user.Id)">Apagar usuário</Button>
+							</div>
 						</div>
-					</div>
+					}
 				}
-			}
-		</AuthorizeView>
-		<AuthorizeView Roles="Common" Context="commonCtx">
-			@if (Users.Count is 0)
-			{
-				<div>
-					Não foi possivel buscar os usuários
-				</div>
-			}
-			else
-			{
-				@foreach (var user in Users)
+			</AuthorizeView>
+			<AuthorizeView Roles="Common" Context="commonCtx">
+				@if (Users.Count is 0)
 				{
-					<div class="rounded border" style="margin: 10px">
-						<UserComponent User="user" />
+					<div>
+						Não foi possivel buscar os usuários
 					</div>
 				}
-			}
-		</AuthorizeView>
+				else
+				{
+					@foreach (var user in Users)
+					{
+						<div class="rounded border" style="margin: 10px">
+							<UserComponent User="user" />
+						</div>
+					}
+				}
+			</AuthorizeView>
+		}
 	</Authorized>
 </AuthorizeView>
 
 @code {
+
+	private bool _isLoading = false;
 
 	private List<DbUserWithoutPassword> Users { get; set; } = new List<DbUserWithoutPassword>();
 
@@ -153,6 +162,8 @@
 	{
 		try
 		{
+			_isLoading = true;
+
 			ShowResetPasswordConfirmation = false;
 
 			const string endpoint = "Auth";
@@ -187,6 +198,7 @@
 			_id = 0;
 			ShowDeleteConfirmation = false;
 			ShowResetPasswordConfirmation = false;
+			_isLoading = false;
 		}
 	}
 
