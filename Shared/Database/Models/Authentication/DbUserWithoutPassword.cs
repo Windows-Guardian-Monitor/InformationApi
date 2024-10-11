@@ -28,7 +28,10 @@ namespace ClientServer.Shared.Database.Models.Authentication
 		[JsonPropertyName("Email")]
 		public string Email { get; set; } = string.Empty;
 
-		[JsonIgnore]
+		[JsonPropertyName("Id")]
+        public int Id { get; set; }
+
+        [JsonIgnore]
 		public string UserType { get; set; } = string.Empty;
 	}
 }

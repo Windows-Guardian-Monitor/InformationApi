@@ -1,33 +1,33 @@
 ﻿@using ClientServer.Shared.Database.Models.Authentication
-<div class="card mb-2 shadow-sm">
+<div>
 	<div class="card-body p-2 d-flex justify-content-between align-items-center">
 		<AuthorizeView Roles="Administrator">
 			<Authorized>
 				<div>
-					<strong>Nome de usuário:</strong> @User.UserName
-				</div>
-				<div class="mx-3">
-					<strong>Tipo de usuário:</strong> @User.UserType
-				</div>
-				<div class="mx-3">
-					<strong>E-mail:</strong> @User.Email
-				</div>
-				<div>
-					<button class="btn btn-warning btn-sm mx-1">Trocar senha</button>
-					<button class="btn btn-danger btn-sm mx-1">Apagar usuário</button>
+					<div>
+						<strong>Nome de usuário:</strong> @User.UserName
+					</div>
+					<div>
+						<strong>Tipo de usuário:</strong> @User.UserType
+					</div>
+					<div>
+						<strong>E-mail:</strong> @User.Email
+					</div>
 				</div>
 			</Authorized>
 		</AuthorizeView>
 		<AuthorizeView Context="commctx" Roles="Common">
 			<Authorized>
 				<div>
-					<strong>Nome de usuário:</strong> @User.UserName
-				</div>
-				<div class="mx-3">
-					<strong>Tipo de usuário:</strong> @User.UserType
-				</div>
-				<div class="mx-3">
-					<strong>E-mail:</strong> @User.Email
+					<div>
+						<strong>Nome de usuário:</strong> @User.UserName
+					</div>
+					<div>
+						<strong>Tipo de usuário:</strong> @User.UserType
+					</div>
+					<div>
+						<strong>E-mail:</strong> @User.Email
+					</div>
 				</div>
 			</Authorized>
 		</AuthorizeView>

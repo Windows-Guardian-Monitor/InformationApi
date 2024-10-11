@@ -6,6 +6,7 @@
 @using ClientServer.Shared.Requests.User
 
 @inject IUserSessionService _userSessionService
+@inject NavigationManager NavigationManager
 
 <PageTitle>Lista de Usuários</PageTitle>
 
@@ -18,25 +19,176 @@
 		<ClientServer.Client.Pages.Components.AccessDenied />
 	</NotAuthorized>
 	<Authorized>
-		@if (Users.Count is 0)
-		{
-			<div>
-				Não foi possivel buscar os usuários
-			</div>
-		}
-		else
-		{
-			@foreach (var user in Users)
+		<h3>Lista de Usuários</h3>
+		<AuthorizeView Roles="Administrator" Context="adminCtx">
+			@if (ShowDeleteConfirmation)
 			{
-				<UserComponent User="user"/>
+				<ClientServer.Client.Pages.Components.Confirmation.CustomMBox Title="Confirmar deleção de usuário"
+																			  Message="Tem certeza que deseja apagar este usuário?"
+																			  OnConfirm="DeleteUser"
+																			  OnCancel="CancelAction" />
 			}
-		}
+
+			@if (ShowResetPasswordConfirmation)
+			{
+				<ClientServer.Client.Pages.Components.Confirmation.CustomMBox Title="Confirmar troca de senha do usuário"
+																			  Message="Tem certeza que deseja trocar a senha deste usuário?"
+																			  OnConfirm="ResetUserPassword"
+																			  OnCancel="CancelAction" />
+			}
+
+			@if (Users.Count is 0)
+			{
+				<div>
+					Não foi possivel buscar os usuários
+				</div>
+			}
+			else
+			{
+				@foreach (var user in Users)
+				{
+					<div class="rounded border" style="margin: 10px">
+						<UserComponent User="user" />
+						<div style="margin: 10px">
+							<Button class="btn btn-warning btn-sm mx-1" @onclick="() => SetUpdateConfirmationDate(user.Id)">Trocar senha</Button>
+							<Button class="btn btn-danger btn-sm mx-1" @onclick="() => SetDeleteConfirmationDate(user.Id)">Apagar usuário</Button>
+						</div>
+					</div>
+				}
+			}
+		</AuthorizeView>
+		<AuthorizeView Roles="Common" Context="commonCtx">
+			@if (Users.Count is 0)
+			{
+				<div>
+					Não foi possivel buscar os usuários
+				</div>
+			}
+			else
+			{
+				@foreach (var user in Users)
+				{
+					<div class="rounded border" style="margin: 10px">
+						<UserComponent User="user" />
+					</div>
+				}
+			}
+		</AuthorizeView>
 	</Authorized>
 </AuthorizeView>
 
 @code {
 
 	private List<DbUserWithoutPassword> Users { get; set; } = new List<DbUserWithoutPassword>();
+
+	public bool ShowDeleteConfirmation { get; set; }
+
+	public bool ShowResetPasswordConfirmation { get; set; }
+
+	private int _id = 0;
+
+	private void SetDeleteConfirmationDate(int userId)
+	{
+		_id = userId;
+		ShowDeleteConfirmation = true;
+	}
+
+	private void SetUpdateConfirmationDate(int userId)
+	{
+		_id = userId;
+		ShowResetPasswordConfirmation = true;
+	}
+
+	private void CancelAction()
+	{
+		_id = 0;
+		ShowDeleteConfirmation = false;
+		ShowResetPasswordConfirmation = false;
+	}
+
+	private async Task DeleteUser()
+	{
+		try
+		{
+			ShowDeleteConfirmation = false;
+
+			const string endpoint = "Auth";
+
+			var url = $"{InformationHandler.GetUrl()}{endpoint}/DeleteUser";
+
+			var reset = new GeneralChangeUserRequest
+				{
+					UserId = _id
+				};
+
+			var response = await Http.PostAsJsonAsync(url, reset);
+
+			var json = await response.Content.ReadAsStringAsync();
+
+			var standardResponse = JsonSerializer.Deserialize<StandardResponse>(json);
+
+			if (standardResponse.Success is false)
+			{
+				_customSnackbarOperator.ShowErrorMessage(standardResponse.Message);
+				return;
+			}
+
+			_customSnackbarOperator.ShowInformationMessage("O usuário foi apagado com sucesso");
+
+			Users.Remove(Users.FirstOrDefault(u => u.Id == _id));
+		}
+		catch (Exception e)
+		{
+			_customSnackbarOperator.ShowErrorMessage(e.Message);
+		}
+		finally
+		{
+			_id = 0;
+			ShowDeleteConfirmation = false;
+			ShowResetPasswordConfirmation = false;
+		}
+	}
+
+	private async Task ResetUserPassword()
+	{
+		try
+		{
+			ShowResetPasswordConfirmation = false;
+
+			const string endpoint = "Auth";
+
+			var url = $"{InformationHandler.GetUrl()}{endpoint}/AdminResetPassword";
+
+			var reset = new GeneralChangeUserRequest
+				{
+					UserId = _id
+				};
+
+			var response = await Http.PostAsJsonAsync(url, reset);
+
+			var json = await response.Content.ReadAsStringAsync();
+
+			var standardResponse = JsonSerializer.Deserialize<StandardResponse>(json);
+
+			if (standardResponse.Success is false)
+			{
+				_customSnackbarOperator.ShowErrorMessage(standardResponse.Message);
+				return;
+			}
+
+			_customSnackbarOperator.ShowInformationMessage("A senha do usuário foi trocada com sucesso", "Foi enviado um e-mail com a nova senha");
+		}
+		catch (Exception e)
+		{
+			_customSnackbarOperator.ShowErrorMessage(e.Message);
+		}
+		finally
+		{
+			_id = 0;
+			ShowDeleteConfirmation = false;
+			ShowResetPasswordConfirmation = false;
+		}
+	}
 
 	protected override async Task OnInitializedAsync()
 	{

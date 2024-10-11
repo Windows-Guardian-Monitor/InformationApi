@@ -25,6 +25,8 @@ namespace ClientServer.Shared.Database.Repositories
 
 		public DbUser GetUserByEmail(string email) => _context.Users.FirstOrDefault(u => u.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
 
+		public DbUser GetByUserId(int id) => _context.Users.FirstOrDefault(u => u.Id == id);
+
 		public List<DbUser> GetAll() => _context.Users.ToList();
 
 
@@ -39,6 +41,13 @@ namespace ClientServer.Shared.Database.Repositories
 		{
 			_context.Users.Update(dbUser);
 			_context.SaveChanges(true);
+		}
+
+		public void Delete(int id)
+		{
+			var user = _context.Users.FirstOrDefault(u => u.Id ==id);
+			_context.Users.Remove(user);
+			_context.SaveChanges();
 		}
 	}
 }

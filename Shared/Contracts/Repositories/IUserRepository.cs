@@ -12,5 +12,7 @@ namespace ClientServer.Shared.Contracts.Repositories
         bool ExistsByEmail(string email);
         void Update(DbUser dbUser);
         public List<DbUser> GetAll();
+        public DbUser GetByUserId(int id);
+        void Delete(int id);
 	}
 }

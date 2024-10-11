@@ -103,6 +103,7 @@ namespace InformationHandlerApi.Controllers
 		}
 
 		[HttpPost("ResetPassword")]
+		//This endpoint is used when user forgets password
 		public StandardResponse ResetPassword(ResetPasswordDto request)
 		{
 			try
@@ -147,6 +148,7 @@ namespace InformationHandlerApi.Controllers
 		}
 
 		[HttpPost("NewPassword")]
+		//This endpoint is used when user is requested to create a new password on first logi
 		public StandardResponse NewPassword(NewPasswordDto request)
 		{
 			try
@@ -268,7 +270,7 @@ namespace InformationHandlerApi.Controllers
 		}
 
 		[HttpPost("GetAllUsers")]
-		public async Task<UsersResponse> GetAllUsers(UserListRequest userListRequest)
+		public UsersResponse GetAllUsers(UserListRequest userListRequest)
 		{
 			try
 			{
@@ -276,7 +278,8 @@ namespace InformationHandlerApi.Controllers
 				{
 					Email = u.Email,
 					IsAdmin = u.Role.Equals("Administrator", StringComparison.OrdinalIgnoreCase) ? true : false,
-					UserName = u.UserName
+					UserName = u.UserName,
+					Id = u.Id
 				}).ToList();
 
 				if (users == null || users.Count is 0)
@@ -285,6 +288,50 @@ namespace InformationHandlerApi.Controllers
 				}
 
 				return new UsersResponse(users, string.Empty, false, HttpStatusCode.OK);
+			}
+			catch (Exception e)
+			{
+				return new UsersResponse(null, e.Message, false, HttpStatusCode.OK);
+			}
+		}
+
+		[HttpPost("AdminResetPassword")]
+		public StandardResponse ResetPasswordPerAdminRequest(GeneralChangeUserRequest adminResetPassword)
+		{
+			try
+			{
+				var dbUser = _userRepository.GetByUserId(adminResetPassword.UserId);
+
+				var password = _passwordService.Create();
+
+				CreatePasswordHash(password, out var passwordHash, out var passwordSalt);
+
+				dbUser.HasLoggedIn = false;
+				dbUser.PasswordHash = passwordHash;
+				dbUser.PasswordSalt = passwordSalt;
+				dbUser.CanChangePassword = true;
+				dbUser.HasChangedPassword = false;
+
+				_userRepository.Update(dbUser);
+
+				_emailService.SendResetPassword(password, dbUser.UserName, dbUser.Email);
+
+				return StandardResponse.CreateOkResponse();
+			}
+			catch (Exception e)
+			{
+				return new UsersResponse(null, e.Message, false, HttpStatusCode.OK);
+			}
+		}
+
+		[HttpPost("DeleteUser")]
+		public StandardResponse DeleteUser(GeneralChangeUserRequest adminResetPassword)
+		{
+			try
+			{
+				_userRepository.Delete(adminResetPassword.UserId);
+
+				return StandardResponse.CreateOkResponse();
 			}
 			catch (Exception e)
 			{
