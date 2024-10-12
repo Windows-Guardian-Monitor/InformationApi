@@ -31,6 +31,7 @@ public class DatabaseContext : DbContext
 	public DbSet<DbRamNominalInfo> Rams { get; set; }
 	public DbSet<DbProgram> Programs { get; set; }
 	public DbSet<DbRule> Rules { get; set; }
-	public DbSet<DbUser> Users { get; set; }
+    public DbSet<DbWorkstationSpecificRule> WsRules { get; set; }
+    public DbSet<DbUser> Users { get; set; }
 	public DbSet<ProcessFinishedEvent> ProcessFinishedEvents { get; set; }
 }

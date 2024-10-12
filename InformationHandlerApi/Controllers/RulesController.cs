@@ -1,5 +1,6 @@
 ﻿using ClientServer.Shared.Contracts.Repositories;
 using ClientServer.Shared.Database.Models;
+using ClientServer.Shared.Database.Repositories;
 using ClientServer.Shared.Reponses;
 using ClientServer.Shared.Requests;
 using ClientServer.Shared.Requests.Contracts;
@@ -16,11 +17,13 @@ namespace InformationHandlerApi.Controllers
 	{
 		private readonly IRuleRepository _ruleRepository;
 		private readonly IProgramRepository _programRepository;
+		private readonly WorkstationRulesRepository _workstationRulesRepository;
 
-		public RulesController(IRuleRepository ruleRepository, IProgramRepository programRepository)
+		public RulesController(IRuleRepository ruleRepository, IProgramRepository programRepository, WorkstationRulesRepository workstationRulesRepository)
 		{
 			_ruleRepository = ruleRepository;
 			_programRepository = programRepository;
+			_workstationRulesRepository = workstationRulesRepository;
 		}
 
 		private (bool, StandardResponse?) Validate(IAddOrUpdateRuleRequest addOrUpdateRuleRequest)
@@ -67,12 +70,35 @@ namespace InformationHandlerApi.Controllers
 			}
 		}
 
-		[HttpPost("CreateForWs")]
-		public StandardResponse CreateForWs(CreateWsSpecificRuleRequest wsSpecificRuleRequest)
+		[HttpPost("CreateForWorkstation")]
+		public StandardResponse CreateNewRuleForSpecificWorkstation([FromBody] string serializedSpecificRuleRequest)
 		{
 			try
 			{
+				var wsSpecificRuleRequest = JsonSerializer.Deserialize<CreateWsSpecificRuleRequest>(serializedSpecificRuleRequest);
+				
 				var (valid, response) = ValidateWsSpecificRule(wsSpecificRuleRequest);
+
+				if(valid is false)
+				{
+					return response;
+				}
+
+				var programs = wsSpecificRuleRequest.Programs.Select(p => new WorkstationSpecificDbRuleProgram()
+				{
+					Hash = p.Hash,
+					Name = p.Name,
+					Path = p.Path
+				}).ToList();
+
+				var workstations = wsSpecificRuleRequest.Workstations.Select(w => new WorkstationForWorkstationRule()
+				{
+					Hostname = w.HostName
+				}).ToList();
+
+				var dbRule = new DbWorkstationSpecificRule(programs, workstations);
+
+				_workstationRulesRepository.Insert(dbRule);
 
 				return StandardResponse.CreateOkResponse();
 			}

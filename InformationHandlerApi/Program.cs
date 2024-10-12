@@ -23,6 +23,8 @@ namespace InformationHandlerApi
 
 
             builder.Services.AddTransient<ProcessFinishedRepository>();
+            builder.Services.AddTransient<WorkstationRulesRepository>();
+
             builder.Services.AddTransient<IWindowsWorkstationRepository, WindowsWorkstationRepository>();
             builder.Services.AddTransient<IProgramRepository, ProgramRepository>();
             builder.Services.AddTransient<IRuleRepository, RuleRepository>();

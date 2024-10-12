@@ -125,11 +125,9 @@
 
 			var selectedWorkstations = _workstations.Where(w => w.Selected).ToList();
 
+			const string endpoint = "CreateForWorkstation";
 
-
-			const string endpoint = "Rules/CreateForWs";
-
-			var url = $"{InformationHandler.GetUrl()}{endpoint}";
+			var url = $"{InformationHandler.GetUrl()}Rules/{endpoint}";
 
 			var createWsSpecificRule = new CreateWsSpecificRuleRequest()
 				{
@@ -138,9 +136,11 @@
 					Workstations = selectedWorkstations
 				};
 
-			var rawResponse = await Http.PostAsJsonAsync(url, createWsSpecificRule);
+			var json = JsonSerializer.Serialize(createWsSpecificRule);
 
-			var json = await rawResponse.Content.ReadAsStringAsync();
+			var rawResponse = await Http.PostAsJsonAsync(url, json);
+
+			json = await rawResponse.Content.ReadAsStringAsync();
 
 			var response = JsonSerializer.Deserialize<StandardResponse>(json);
 

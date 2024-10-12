@@ -114,7 +114,7 @@ namespace InformationHandlerApi.Controllers
 			{
 				if (_windowsWorkstationRepository.Count() is 0)
 				{
-					return new AllWorkstationsResponse(null, "Não há máquinas disponíveis", false, HttpStatusCode.OK);
+					return new AllWorkstationsResponse(new List<SimpleWorkstationItem>(), "Não há máquinas disponíveis", false, HttpStatusCode.OK);
 				}
 
 				var workstations = _windowsWorkstationRepository.SelectWorkstations();
