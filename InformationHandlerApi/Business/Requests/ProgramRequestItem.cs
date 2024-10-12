@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace InformationHandlerApi.Business.Requests
 {
-	public class ProgramRequest : IProgram
+	public class ProgramRequestItem : IProgram
 	{
 		[JsonPropertyName("Path")]
 		public string Path { get; set; }
@@ -15,6 +15,9 @@ namespace InformationHandlerApi.Business.Requests
 		[JsonPropertyName("Hash")]
 		public string Hash { get; set; }
 
-		public static implicit operator DbProgram(ProgramRequest programRequest) => new DbProgram(programRequest.Path, programRequest.Name, programRequest.Hash);
+		[JsonPropertyName("Hostname")]
+		public string Hostname { get; set; }
+
+		public static implicit operator DbProgram(ProgramRequestItem programRequest) => new DbProgram(programRequest.Path, programRequest.Name, programRequest.Hash, programRequest.Hostname);
 	}
 }

@@ -1,5 +1,4 @@
 ﻿using ClientServer.Shared.Contracts.Repositories;
-using ClientServer.Shared.Database;
 using ClientServer.Shared.Database.Models;
 
 namespace ClientServer.Shared.Database.Repositories
@@ -27,5 +26,7 @@ namespace ClientServer.Shared.Database.Repositories
 		}
 
 		public List<DbProgram> GetAll() => _context.Programs.ToList();
+
+		public List<DbProgram> GetByHostname(string hostName) => _context.Programs.ToList().Where(p => p.Hostname.Equals(hostName, StringComparison.OrdinalIgnoreCase)).ToList();
 	}
 }

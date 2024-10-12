@@ -23,15 +23,15 @@ namespace InformationHandlerApi.Controllers
 		{
 			try
 			{
-				var programs = JsonSerializer.Deserialize<List<ProgramRequest>>(serializedProgramList);
+				var programs = JsonSerializer.Deserialize<List<ProgramRequestItem>>(serializedProgramList);
 
 				if (programs is null)
 				{
 					return new ValueTask<ActionResult<StandardResponse>>(new StandardResponse("Could not obtain workstation info", false, System.Net.HttpStatusCode.InternalServerError));
 				}
 
-				foreach (ProgramRequest? program in programs)
-                {
+				foreach (ProgramRequestItem? program in programs)
+				{
 					if (_programRepository.Exists(program.Hash))
 					{
 						continue;
@@ -40,7 +40,7 @@ namespace InformationHandlerApi.Controllers
 					_programRepository.Insert(program);
 				}
 
-                return new ValueTask<ActionResult<StandardResponse>>(new StandardResponse("OK", true, System.Net.HttpStatusCode.OK));
+				return new ValueTask<ActionResult<StandardResponse>>(new StandardResponse("OK", true, System.Net.HttpStatusCode.OK));
 			}
 			catch (Exception e)
 			{
@@ -50,5 +50,20 @@ namespace InformationHandlerApi.Controllers
 
 		[HttpGet(Name = "GetAll")]
 		public List<DbProgram> Get() => _programRepository.GetAll();
+
+		[HttpPost("GetPerHostname")]
+		public PerHostnameProgramsResponse Post([FromBody] string hostName)
+		{
+			try
+			{
+				var programs = _programRepository.GetByHostname(hostName);
+
+				return new PerHostnameProgramsResponse(programs, string.Empty, true, System.Net.HttpStatusCode.OK);
+			}
+			catch (Exception e)
+			{
+				return new PerHostnameProgramsResponse(null, e.Message, false, System.Net.HttpStatusCode.OK);
+			}
+		}
 	}
 }

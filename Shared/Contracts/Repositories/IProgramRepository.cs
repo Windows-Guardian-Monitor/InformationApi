@@ -8,5 +8,6 @@ namespace ClientServer.Shared.Contracts.Repositories
 		void InsertMany(IEnumerable<DbProgram> programs);
 		void Insert(DbProgram program);
 		List<DbProgram> GetAll();
+		List<DbProgram> GetByHostname(string hostName);
 	}
 }
