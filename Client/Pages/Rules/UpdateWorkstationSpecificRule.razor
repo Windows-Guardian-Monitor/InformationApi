@@ -1,0 +1,161 @@
+﻿@page "/update_workstation_rule/{Identifier}"
+@using ClientServer.Client.Operators.Contracts
+@using ClientServer.Client.Services
+@using ClientServer.Shared.Reponses
+
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@inject ICustomSnackbarOperator _customSnackbarOperator;
+@inject PageNavigationHelper _pageNavigationHelper
+
+<ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_customSnackbarOperator" />
+
+<PageTitle>Criação de Regras para Máquinas</PageTitle>
+
+<AuthorizeView>
+	<NotAuthorized>
+		<ClientServer.Client.Pages.Components.AccessDenied />
+	</NotAuthorized>
+	<Authorized>
+		@if (_rule is not null && _rule.ProgramsWithSelectedOnes is not null && _rule.ProgramsWithSelectedOnes.Count > 0 && _rule.WorkstationsWithSelectedOnes is not null && _rule.WorkstationsWithSelectedOnes.Count > 0)
+		{
+			<div>
+				<label>Nome da regra:</label>
+				<input class="form-control" @bind="_rule.RuleName" placeholder="Por favor crie um nome para esta regra" />
+			</div>
+		}
+		@if (_rule is null || _rule.ProgramsWithSelectedOnes is null)
+		{
+			<div>
+				Carregando programas...
+			</div>
+		}
+		else
+		{
+			@if (_rule.ProgramsWithSelectedOnes.Count is 0)
+			{
+				<div>
+					Não há programas cadastrados
+				</div>
+			}
+			else
+			{
+				<div style="margin-top:10px">
+					<h5>Selecione as aplicações para bloquear</h5>
+				</div>
+				<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 0; margin: 0;" class="rounded border">
+					<ul style="padding: 0; margin: 0; list-style: none;">
+						@foreach (var item in _rule.ProgramsWithSelectedOnes)
+						{
+							<ClientServer.Client.Pages.Rules.RuleItems.SpecificRuleProgramToSelect Program="item"/>
+						}
+					</ul>
+				</div>
+			}
+		}
+		@if (_rule is null || _rule.WorkstationsWithSelectedOnes is null)
+		{
+			<div>
+				Carregando máquinas...
+			</div>
+		}
+		else
+		{
+			@if (_rule.WorkstationsWithSelectedOnes.Count is 0)
+			{
+				<div>
+					Não há máquinas cadastradas
+				</div>
+			}
+			else
+			{
+				<div style="margin-top:10px">
+					<h5>Selecione as máquinas para aplicar a regra</h5>
+				</div>
+				<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 0; margin-top: 10px;" class="rounded border">
+					<ul style="padding: 0; margin: 0; list-style: none;">
+						@foreach (var item in _rule.WorkstationsWithSelectedOnes)
+						{
+							<ClientServer.Client.Pages.Rules.RuleItems.SpecificRuleWorkstationToSelect WorkstationItem="item"/>
+						}
+					</ul>
+				</div>
+			}
+		}
+		@if (_rule is not null && _rule.ProgramsWithSelectedOnes is not null && _rule.ProgramsWithSelectedOnes.Count > 0 && _rule.WorkstationsWithSelectedOnes is not null && _rule.WorkstationsWithSelectedOnes.Count > 0)
+		{
+			<Button @onclick=UpdateWsRuleOnServer style="margin-top:10px" class="btn btn-primary">Atualizar regra</Button>
+		}
+	</Authorized>
+</AuthorizeView>
+
+@code {
+	[Parameter]
+	public string Identifier { get; set; }
+
+	private RuleWithSelectedProgramsAndWorkstationsResponse _rule;
+
+	private async Task UpdateWsRuleOnServer()
+	{
+		try
+		{
+			if (_rule.ProgramsWithSelectedOnes.Any(p => p.Selected) is false)
+			{
+				_customSnackbarOperator.ShowWarningMessage("Por favor selecione pelo menos uma aplicação para criar uma regra.");
+				return;
+			}
+
+			if (_rule.WorkstationsWithSelectedOnes.Any(p => p.Selected) is false)
+			{
+				_customSnackbarOperator.ShowWarningMessage("Por favor selecione pelo menos uma máquina para criar uma regra.");
+				return;
+			}
+
+			if (string.IsNullOrWhiteSpace(_rule.RuleName))
+			{
+				_customSnackbarOperator.ShowWarningMessage("Cada regra precisa ter um nome.");
+				return;
+			}
+
+			var url = $"{InformationHandler.GetUrl()}Rules/UpdateSpecificRule";
+
+			var r = await Http.PostAsJsonAsync(url, JsonSerializer.Serialize(_rule));
+
+			var json = await r.Content.ReadAsStringAsync();
+
+			var response = JsonSerializer.Deserialize<StandardResponse>(json);
+
+			if (response?.Success is false)
+			{
+				_customSnackbarOperator.ShowErrorMessage(response.Message);
+				return;
+			}
+
+			_customSnackbarOperator.ShowInformationMessage("Regra atualizada com sucesso", "Você será redirecionado(a) à página de regras por máquina em instantes");
+
+			StateHasChanged();
+
+			await (new PeriodicTimer(TimeSpan.FromSeconds(3))).WaitForNextTickAsync();
+
+			NavigationManager.NavigateTo("workstation_rules");
+		}
+		catch (Exception e)
+		{
+			
+		}
+	}
+
+	protected override Task OnInitializedAsync()
+	{
+		try
+		{
+			_rule = _pageNavigationHelper.GetValue<RuleWithSelectedProgramsAndWorkstationsResponse>(Identifier);
+		}
+		catch (Exception e)
+		{
+			_customSnackbarOperator.ShowErrorMessage(e.Message);
+		}
+
+		return base.OnInitializedAsync();
+	}
+}

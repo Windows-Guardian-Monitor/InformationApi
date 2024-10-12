@@ -1,0 +1,183 @@
+﻿@page "/workstation_rules"
+
+@using ClientServer.Client.Operators.Contracts
+@using ClientServer.Client.Pages.Rules.RuleItems
+@using ClientServer.Client.Services
+@using ClientServer.Shared.Database.Models
+@using ClientServer.Shared.Reponses
+@using ClientServer.Shared.Requests
+
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsRuntime
+@inject ICustomSnackbarOperator _customSnackbarOperator
+@inject PageNavigationHelper _pageNavigationHelper
+
+<PageTitle>Regras por Máquina</PageTitle>
+
+<AuthorizeView>
+	<NotAuthorized>
+		<ClientServer.Client.Pages.Components.AccessDenied />
+	</NotAuthorized>
+	<Authorized>
+		<ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_customSnackbarOperator" />
+		<h3>Regras por Máquina</h3>
+		@if (_rules is null)
+		{
+			<div>
+				Buscando regras...
+			</div>
+		}
+		else
+		{
+			@if (_rules.Count is 0)
+			{
+				<div>
+					Ainda não há regras cadastradas
+				</div>
+			}
+			else
+			{
+				@if (_showConfirmation)
+				{
+					<ClientServer.Client.Pages.Components.Confirmation.CustomMBox Title="Confirmar deleção de regra"
+																				  Message="Tem certeza que deseja apagar esta regra?"
+																				  OnConfirm="DeleteRule"
+																				  OnCancel="Cancel" />
+				}
+				<ul style="padding: 0; margin: 0; list-style: none;">
+					@foreach (var item in _rules)
+					{
+						<div class="card" style="margin:10px">
+							<RuleWithProgramAndWorkstationListItem Rule="item" />
+							<div class="card-footer d-flex justify-content-end border-top-0 bg-white">
+								<Button class="btn btn-danger me-2" @onclick="() => ShowDeleteConfirmation(item.WorkstationSpecificRuleId)">
+									<i class="oi oi-trash"></i> Apagar
+								</Button>
+								<Button class="btn btn-warning" @onclick="() => UpdateRule(item.WorkstationSpecificRuleId)">
+									<i class="oi oi-pencil"></i> Atualizar
+								</Button>
+							</div>
+						</div>
+					}
+				</ul>
+			}
+		}
+	</Authorized>
+</AuthorizeView>
+
+@code {
+	private List<DbWorkstationSpecificRule> _rules;
+
+	private int _id;
+
+	private bool _showConfirmation = false;
+
+	private void ShowDeleteConfirmation(int id)
+	{
+		_showConfirmation = true;
+		_id = id;
+	}
+
+	private async Task DeleteRule()
+	{
+		try
+		{
+			var r = await Http.PostAsJsonAsync($"{InformationHandler.GetUrl()}Rules/DeleteWorkstationRule", _id);
+
+			var json = await r.Content.ReadAsStringAsync();
+
+			var response = JsonSerializer.Deserialize<StandardResponse>(json);
+
+			if (response?.Success is false)
+			{
+				_customSnackbarOperator.ShowErrorMessage(response.Message);
+
+				return;
+			}
+
+			_customSnackbarOperator.ShowInformationMessage("Regra apagada com sucesso");
+
+			var rule = _rules.FirstOrDefault(r => r.WorkstationSpecificRuleId == _id);
+
+			if (rule is null)
+			{
+				return;
+			}
+
+			_rules.Remove(rule);
+		}
+		catch (Exception e)
+		{
+			_customSnackbarOperator.ShowErrorMessage(e.Message);
+		}
+		finally
+		{
+			Cancel();
+		}
+	}
+
+	private async Task UpdateRule(int id)
+	{
+		try
+		{
+			var getRuleByIdRequest = new GetRuleByIdRequest(id);
+
+			var url = $"{InformationHandler.GetUrl()}Rules/AcquireWorkstationRule";
+
+			var r = await Http.PostAsJsonAsync(url, id);
+
+			var json = await r.Content.ReadAsStringAsync();
+
+			var ruleResponse = JsonSerializer.Deserialize<RuleWithSelectedProgramsAndWorkstationsResponse>(json);
+
+			if (ruleResponse.Success is false)
+			{
+				_customSnackbarOperator.ShowErrorMessage(ruleResponse.Message);
+				return;
+			}
+
+			var identifier = _pageNavigationHelper.AddValue<RuleWithSelectedProgramsAndWorkstationsResponse>(ruleResponse);
+
+			var pageUrl = $"update_workstation_rule/{identifier}";
+
+			NavigationManager.NavigateTo(pageUrl, false);
+		}
+		catch (Exception e)
+		{
+			_customSnackbarOperator.ShowErrorMessage(e.Message);
+		}
+	}
+
+	private void Cancel()
+	{
+		_showConfirmation = false;
+		_id = 0;
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			var r = await Http.PostAsJsonAsync($"{InformationHandler.GetUrl()}Rules/GetSpecificRules", new object());
+
+			var json = await r.Content.ReadAsStringAsync();
+
+			var rulesResponse = JsonSerializer.Deserialize<SpecificRuleResponse>(json);
+
+			if (rulesResponse.Success is false)
+			{
+				_customSnackbarOperator.ShowErrorMessage(rulesResponse.Message);
+				return;
+			}
+
+			_rules = rulesResponse.Rules;
+		}
+		catch (Exception e)
+		{
+			_customSnackbarOperator.ShowErrorMessage(e.Message);
+		}
+
+		await base.OnInitializedAsync();
+	}
+}

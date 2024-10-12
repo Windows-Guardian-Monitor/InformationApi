@@ -36,5 +36,16 @@ namespace ClientServer.Shared.Database.Repositories
 
 			_context.SaveChanges();
 		}
+
+		public List<DbWorkstationSpecificRule> GetAll() => 
+			_context.WsRules
+			.Include(w => w.Programs)
+			.Include(w => w.Workstations)
+			.ToList();
+
+		public DbWorkstationSpecificRule GetById(int id) => _context.WsRules
+			.Include(w => w.Programs)
+			.Include(w => w.Workstations)
+			.FirstOrDefault(w => w.WorkstationSpecificRuleId == id);
 	}
 }

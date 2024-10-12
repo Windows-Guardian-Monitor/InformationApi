@@ -19,10 +19,11 @@
 		<ClientServer.Client.Pages.Components.AccessDenied />
 	</NotAuthorized>
 	<Authorized>
+		<h3>Criar regras por máquina</h3>
 		@if (_programs is not null && _programs.Count > 0 && _workstations is not null && _workstations.Count > 0)
 		{
 			<div>
-				<label>Nome da regra:</label>
+				<h5>Nome da regra:</h5>
 				<input class="form-control" @bind="_ruleName" placeholder="Por favor crie um nome para esta regra" />
 			</div>
 		}
@@ -150,13 +151,13 @@
 				return;
 			}
 
-			_customSnackbarOperator.ShowInformationMessage("Regra criada com sucesso", "Você será redirecionado(a) à página de regras gerais em instantes");
+			_customSnackbarOperator.ShowInformationMessage("Regra criada com sucesso", "Você será redirecionado(a) à página de regras por máquina em instantes");
 
 			StateHasChanged();
 
 			await (new PeriodicTimer(TimeSpan.FromSeconds(3))).WaitForNextTickAsync();
 
-			NavigationManager.NavigateTo("rules");
+			NavigationManager.NavigateTo("workstation_rules");
 		}
 		catch (Exception e)
 		{

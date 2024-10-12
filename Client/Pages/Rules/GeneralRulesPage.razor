@@ -42,10 +42,10 @@
 							<RuleWithProgramListItem Rule="@item"></RuleWithProgramListItem>
 							<div class="card-footer d-flex justify-content-end border-top-0 bg-white">
 								<Button class="btn btn-danger me-2" @onclick="() => ShowDeleteConfirmation(item.RuleId)">
-									<i class="bi bi-trash"></i> Apagar
+									<i class="oi oi-trash"></i> Apagar
 								</Button>
 								<Button class="btn btn-warning" @onclick="() => UpdateRule(item.RuleId)">
-									<i class="bi bi-pencil"></i> Atualizar
+									<i class="oi oi-pencil"></i> Atualizar
 								</Button>
 							</div>
 						</div>
@@ -64,7 +64,6 @@
 
 @code {
 	private List<DbRule> _rules;
-	private const string endpoint = "Rules";
 
 	private bool ShowConfirmation = false;
 	private int _id;
@@ -81,6 +80,8 @@
 
 		try
 		{
+			const string endpoint = "Rules";
+
 			var url = $"{InformationHandler.GetUrl()}{endpoint}/Delete";
 
 			var deleteRuleRequest = new DeleteRuleRequest(_id);
@@ -115,6 +116,8 @@
 		try
 		{
 			var getRuleByIdRequest = new GetRuleByIdRequest(id);
+
+			const string endpoint = "Rules";
 
 			var url = $"{InformationHandler.GetUrl()}{endpoint}/Acquire";
 
@@ -158,6 +161,8 @@
 	{
 		try
 		{
+			const string endpoint = "Rules";
+
 			var url = $"{InformationHandler.GetUrl()}{endpoint}";
 
 			var response = await Http.GetAsync(url);

@@ -1,5 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ClientServer.Shared.DataTransferObjects;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 
 namespace ClientServer.Shared.Database.Models
@@ -46,7 +48,7 @@ namespace ClientServer.Shared.Database.Models
 	}
 
 	[Table("WorkstationForWorkstationSpecificRule")]
-	public class WorkstationForWorkstationRule
+	public class WorkstationSpecificDbRuleWorkstation
 	{
 		[Key]
 		public int WorkstationId { get; set; }
@@ -54,6 +56,9 @@ namespace ClientServer.Shared.Database.Models
 		[JsonPropertyName("Hostname")]
 		public string Hostname { get; set; }
 
+		[JsonPropertyName("Selected")]
+		[NotMapped]
+		public bool Selected { get; set; }
 
 		[ForeignKey("WorkstationSpecificRuleId")]
 		[JsonIgnore]
@@ -64,10 +69,11 @@ namespace ClientServer.Shared.Database.Models
 	[Table("WorkstationSpecificRule")]
 	public class DbWorkstationSpecificRule
 	{
-		public DbWorkstationSpecificRule(List<WorkstationSpecificDbRuleProgram> programs, List<WorkstationForWorkstationRule> workstations)
+		public DbWorkstationSpecificRule(List<WorkstationSpecificDbRuleProgram> programs, List<WorkstationSpecificDbRuleWorkstation> workstations, string ruleName)
 		{
 			Programs = programs;
 			Workstations = workstations;
+			RuleName = ruleName;
 		}
 
 		public DbWorkstationSpecificRule()
@@ -83,6 +89,9 @@ namespace ClientServer.Shared.Database.Models
 		public List<WorkstationSpecificDbRuleProgram> Programs { get; set; }
 
 		[JsonPropertyName("WorkstationSpecificRuleWorkstations")]
-		public List<WorkstationForWorkstationRule> Workstations { get; set; }
-	}
+		public List<WorkstationSpecificDbRuleWorkstation> Workstations { get; set; }
+
+		[JsonPropertyName("RuleName")]
+        public string RuleName { get; set; }
+    }
 }
