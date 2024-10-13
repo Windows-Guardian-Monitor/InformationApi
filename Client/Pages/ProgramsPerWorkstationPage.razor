@@ -1,0 +1,156 @@
+﻿@page "/programs_per_workstation"
+@using ClientServer.Client.Operators.Contracts
+@using ClientServer.Shared.Database.Models
+@using ClientServer.Shared.Reponses
+
+@inject HttpClient Http
+@inject ICustomSnackbarOperator _customSnackbarOperator
+
+
+<PageTitle>Programas por Máquina</PageTitle>
+
+<AuthorizeView>
+	<NotAuthorized>
+		<ClientServer.Client.Pages.Components.AccessDenied />
+	</NotAuthorized>
+	<Authorized>
+		<h3>Lista de Aplicações por Máquina</h3>
+		<ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_customSnackbarOperator" />
+		@if (_workstationList is null)
+		{
+			<div>
+				Carregando lista de máquinas
+			</div>
+		}
+		else
+		{
+			@if (_workstationList.Count is 0)
+			{
+				<div>
+					Não há maquinas disponíveis
+				</div>
+			}
+			else
+			{
+				<select @bind="@_selectedWorkstation">
+					@foreach (var item in _workstationList)
+					{
+						<option>@item</option>
+					}
+				</select>
+				<Button @onclick="LoadPrograms">Carregar programas</Button>
+				<h4>Aplicações</h4>
+				@if (_programs is null)
+				{
+					<div>
+						Por favor selecione a máquina para buscar as aplicações
+					</div>
+				}
+				else
+				{
+					@if (_programs.Count is 0)
+					{
+						<div>Não há aplicações relacionadas a esta máquina</div>
+					}
+					else
+					{
+						<div style="overflow-y: auto; border: 1px solid #ddd; padding: 0; margin: 0;">
+							<ul style="padding: 0; margin: 0; list-style: none;">
+								@foreach (var item in _programs)
+								{
+									<ClientServer.Client.Pages.Reports.ProgramListItem Program="@item" />
+								}
+							</ul>
+						</div>
+					}
+				}
+			}
+		}
+	</Authorized>
+</AuthorizeView>
+
+@code {
+	private string _selectedWorkstation;
+
+	private List<string> _workstationList;
+
+	private List<DbProgram> _programs;
+
+	private async Task LoadWorkstations()
+	{
+		var url = $"{InformationHandler.GetUrl()}{"Information/GetAllWorkstations"}";
+
+		var response = await Http.GetFromJsonAsync<AllWorkstationsResponse>(url);
+
+		if (response is null)
+		{
+			throw new Exception("Houve um erro ao buscar as máquinas");
+		}
+
+		if (response.Workstations.Count is 0)
+		{
+			_workstationList = new List<string>();
+			return;
+		}
+
+		_workstationList = response.Workstations.Select(w => w.HostName).ToList();
+
+		if (_workstationList.Count is 1)
+		{
+			_selectedWorkstation = _workstationList[0];
+		}
+	}
+
+	private async Task LoadPrograms()
+	{
+		try
+		{
+			if (string.IsNullOrEmpty(_selectedWorkstation))
+			{
+				_customSnackbarOperator.ShowWarningMessage("Por favor selecione uma máquina para buscar as aplicações dela");
+				return;
+			}
+
+			var url = $"{InformationHandler.GetUrl()}Program/GetPerHostname";
+
+			var r = await Http.PostAsJsonAsync(url, _selectedWorkstation);
+
+			var json = await r.Content.ReadAsStringAsync();
+
+			var response = JsonSerializer.Deserialize<PerHostnameProgramsResponse>(json);
+
+			if (response is null)
+			{
+				throw new Exception("Houve um erro ao buscar as aplicações");
+			}
+
+			if (response.Programs is null || response.Programs.Count is 0)
+			{
+				_programs = new List<DbProgram>();
+				return;
+			}
+
+			_programs = response.Programs;
+		}
+		catch (Exception e)
+		{
+			_customSnackbarOperator.ShowErrorMessage(e.Message);
+		}
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			await LoadWorkstations();
+		}
+		catch (Exception e)
+		{
+			_customSnackbarOperator.ShowErrorMessage(e.Message);
+		}
+		finally
+		{
+			await base.OnInitializedAsync();
+		}
+	}
+}
