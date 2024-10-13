@@ -188,7 +188,7 @@ namespace InformationHandlerApi.Controllers
 				}
 
 
-				var programs = existentRuleRequest.ProgramsWithSelectedOnes.Where(p=> p.Selected).Select(p => new WorkstationSpecificDbRuleProgram()
+				var programs = existentRuleRequest.ProgramsWithSelectedOnes.Where(p => p.Selected).Select(p => new WorkstationSpecificDbRuleProgram()
 				{
 					Hash = p.Hash,
 					Name = p.Name,
@@ -312,12 +312,24 @@ namespace InformationHandlerApi.Controllers
 			}
 		}
 
+		//WINDOWS
 		[HttpPost("AcquireAll")]
 		public WsRuleResponse GetAllRules(GetRuleByWsRequest getRuleByWsRequest)
 		{
 			try
 			{
-				var rules = _ruleRepository.GetAll();
+				List<DbRule> rules;
+
+				var r = _workstationRulesRepository.GetByMachineName(getRuleByWsRequest.Hostname);
+
+				if (r != null)
+				{
+					rules = r.Select(r => new DbRule(r.RuleName, r.Programs.Select(p => new DbRuleProgram(p.Path, p.Name, p.Hash)).ToList())).ToList();
+				}
+				else
+				{
+					rules = _ruleRepository.GetAll();
+				}
 
 				return new WsRuleResponse(rules, true, string.Empty);
 			}

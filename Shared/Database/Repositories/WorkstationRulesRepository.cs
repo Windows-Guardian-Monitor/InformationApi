@@ -47,5 +47,10 @@ namespace ClientServer.Shared.Database.Repositories
 			.Include(w => w.Programs)
 			.Include(w => w.Workstations)
 			.FirstOrDefault(w => w.WorkstationSpecificRuleId == id);
+
+		public List<DbWorkstationSpecificRule> GetByMachineName(string machineName) => _context.WsRules
+			.Include(w => w.Programs)
+			.Include(w => w.Workstations)
+			.Where(w => w.Workstations.Any(w => w.Hostname.Equals(machineName, StringComparison.OrdinalIgnoreCase))).ToList();
 	}
 }
