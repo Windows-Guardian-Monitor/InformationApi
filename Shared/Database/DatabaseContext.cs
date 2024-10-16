@@ -1,5 +1,6 @@
 ﻿using ClientServer.Shared.Database.Models;
 using ClientServer.Shared.Database.Models.Authentication;
+using ClientServer.Shared.Models;
 using ClientServer.Shared.Requests.Events;
 using Microsoft.EntityFrameworkCore;
 namespace ClientServer.Shared.Database;
@@ -34,4 +35,6 @@ public class DatabaseContext : DbContext
     public DbSet<DbWorkstationSpecificRule> WsRules { get; set; }
     public DbSet<DbUser> Users { get; set; }
 	public DbSet<ProcessFinishedEvent> ProcessFinishedEvents { get; set; }
+    public DbSet<CpuPerformanceModel> CpuPerformanceMonitor { get; set; }
+    public DbSet<RamPerformanceModel> RamPerformanceMonitor { get; set; }
 }

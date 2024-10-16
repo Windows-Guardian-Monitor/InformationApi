@@ -22,12 +22,12 @@ namespace ClientServer.Shared.Database.Repositories
 		{
 			var processFinishedEvents = new List<ProcessFinishedEvent>();
 
-			var filteredEvents = _context.ProcessFinishedEvents.ToList().Where(p => IsWithinFilter(p.Timestamp, date));
+			var filteredEvents = _context.ProcessFinishedEvents.ToList().Where(p => IsWithinDate(p.Timestamp, date));
 
 			return filteredEvents.ToList();
 		}
 
-		private bool IsWithinFilter(long timestamp, CustomDate date)
+		private static bool IsWithinDate(long timestamp, CustomDate date)
 		{
 			var d = timestamp.TimestampToDatetime();
 

@@ -322,7 +322,7 @@ namespace InformationHandlerApi.Controllers
 
 				var r = _workstationRulesRepository.GetByMachineName(getRuleByWsRequest.Hostname);
 
-				if (r != null)
+				if (r != null || r.Count > 0)
 				{
 					rules = r.Select(r => new DbRule(r.RuleName, r.Programs.Select(p => new DbRuleProgram(p.Path, p.Name, p.Hash)).ToList())).ToList();
 				}
