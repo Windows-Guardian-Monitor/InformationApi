@@ -14,6 +14,17 @@ namespace ClientServer.Shared.Database.Repositories.Performance
 
         public void Insert(CpuPerformanceModel performanceModel)
         {
+            var dbPerf =
+                _context.CpuPerformanceMonitor.ToList().LastOrDefault(c => c.MachineName.Equals(performanceModel.MachineName, StringComparison.OrdinalIgnoreCase));
+
+            if (dbPerf is not null)
+            {
+                if (dbPerf.CpuUsagePercentage.Equals(performanceModel.CpuUsagePercentage, StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+            }
+
             _context.CpuPerformanceMonitor.Add(performanceModel);
             _context.SaveChanges();
         }

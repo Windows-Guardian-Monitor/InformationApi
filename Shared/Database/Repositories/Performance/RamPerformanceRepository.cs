@@ -14,7 +14,18 @@ namespace ClientServer.Shared.Database.Repositories.Performance
 
 		public void Insert(RamPerformanceModel performanceModel)
 		{
-			_context.RamPerformanceMonitor.Add(performanceModel);
+            var dbPerf =
+                _context.RamPerformanceMonitor.ToList().LastOrDefault(c => c.MachineName.Equals(performanceModel.MachineName, StringComparison.OrdinalIgnoreCase));
+
+            if (dbPerf is not null)
+            {
+                if (dbPerf.RamUsagePercentage.Equals(performanceModel.RamUsagePercentage, StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+            }
+
+            _context.RamPerformanceMonitor.Add(performanceModel);
 			_context.SaveChanges();
 		}
 
