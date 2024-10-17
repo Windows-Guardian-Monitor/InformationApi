@@ -4,7 +4,10 @@ namespace ClientServer.Shared.Models
 {
 	public class RamPerformanceModel
 	{
-		[JsonPropertyName("RamUsagePercentage")]
+        [JsonPropertyName("Id")]
+        public int Id { get; set; }
+
+        [JsonPropertyName("RamUsagePercentage")]
 		public string RamUsagePercentage { get; set; } = string.Empty;
 
 		[JsonPropertyName("DateTime")]

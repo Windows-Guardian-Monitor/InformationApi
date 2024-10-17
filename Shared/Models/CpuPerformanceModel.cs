@@ -4,7 +4,10 @@ namespace ClientServer.Shared.Models
 {
 	public class CpuPerformanceModel
 	{
-		[JsonPropertyName("CpuUsagePercentage")]
+        [JsonPropertyName("Id")]
+        public int Id { get; set; }
+
+        [JsonPropertyName("CpuUsagePercentage")]
 		public string CpuUsagePercentage { get; set; } = string.Empty;
 
         [JsonPropertyName("DateTime")]
