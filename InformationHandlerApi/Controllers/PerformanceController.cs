@@ -42,7 +42,7 @@ namespace InformationHandlerApi.Controllers
             try
             {
                 var ramPerformanceModel = JsonSerializer.Deserialize<RamPerformanceModel>(performanceModelJson);
-                //_ramPerformanceRepository.Insert(ramPerformanceModel);
+                _ramPerformanceRepository.Insert(ramPerformanceModel);
                 return StandardResponse.CreateOkResponse();
             }
             catch (Exception e)
