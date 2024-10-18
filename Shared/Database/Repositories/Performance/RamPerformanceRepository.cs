@@ -29,23 +29,23 @@ namespace ClientServer.Shared.Database.Repositories.Performance
 			_context.SaveChanges();
 		}
 
-		public List<RamPerformanceModel> GetByMachineAndDate(string machineName, CustomDate date)
+		public List<RamPerformanceModel> GetByMachineAndDate(string machineName)
 		{
-			var performances = _context.RamPerformanceMonitor.ToList().Where(p => IsWithinMachineNameAndDate(p, machineName, date));
+			var performances = _context.RamPerformanceMonitor.ToList().Where(p => IsWithinMachineNameAndDate(p, machineName));
 
 			return performances.ToList();
 		}
 
-		private static bool IsWithinMachineNameAndDate(RamPerformanceModel performanceModel, string machineName, CustomDate customDate)
+		private static bool IsWithinMachineNameAndDate(RamPerformanceModel performanceModel, string machineName)
 		{
-			var isWithinSelectedDay =
-				performanceModel.DateTime.Day == customDate.Day &&
-				performanceModel.DateTime.Month == customDate.Month &&
-				performanceModel.DateTime.Year == customDate.Year;
+			//var isWithinSelectedDay =
+			//	performanceModel.DateTime.Day == customDate.Day &&
+			//	performanceModel.DateTime.Month == customDate.Month &&
+			//	performanceModel.DateTime.Year == customDate.Year;
 
 			var isSearchedMachine = performanceModel.MachineName.Equals(machineName, StringComparison.OrdinalIgnoreCase);
 
-			if (isSearchedMachine && isWithinSelectedDay)
+			if (isSearchedMachine)
 			{
 				return true;
 			}

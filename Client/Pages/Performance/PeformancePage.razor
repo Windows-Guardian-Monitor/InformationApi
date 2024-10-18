@@ -1,0 +1,201 @@
+﻿@page "/performance_report"
+@using ClientServer.Client.Operators.Contracts
+@using ClientServer.Shared.Reponses.Performances
+@using ClientServer.Shared.Requests.Performances
+
+@inject HttpClient Http
+@inject ICustomSnackbarOperator _customSnackbarOperator
+
+<PageTitle>Relatório de Desempenho</PageTitle>
+
+<AuthorizeView>
+    <NotAuthorized>
+        <ClientServer.Client.Pages.Components.AccessDenied />
+    </NotAuthorized>
+    <Authorized>
+        <ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_customSnackbarOperator" />
+        <h3>Relatório de Desempenho das Máquinas</h3>
+        <PieChart @ref="pieChart" Width="500" />
+        <Button Type="ButtonType.Button" Color="ButtonColor.Primary" Size="ButtonSize.Small" @onclick="async () => await RandomizeAsync()"> Randomize </Button>
+        @if (_workstationList is null)
+        {
+            <div>Carregando lista de máquinas</div>
+        }
+        else
+        {
+            @if (_workstationList.Count is 0)
+            {
+                <div>Não há máquinas disponíveis para fazer o filtro</div>
+            }
+            else
+            {
+                <select @bind="@_selectedWorkstation">
+                    @foreach (var item in _workstationList)
+                    {
+                        <option>@item</option>
+
+                    }
+                </select>
+                <Button style="btn btn-info" @onclick="LoadPrograms">Selecionar máquina</Button>
+            }
+        }
+    </Authorized>
+</AuthorizeView>
+
+@code
+{
+    private string _selectedWorkstation;
+    private List<string> _workstationList;
+
+    private PieChart pieChart = default!;
+    private PieChartOptions pieChartOptions = default!;
+    private ChartData chartData = default!;
+    private string[]? backgroundColors;
+
+    private int datasetsCount = 0;
+    private int dataLabelsCount = 0;
+
+    private Random random = new();
+
+    private string GetNextDataLabel() => $"Product {dataLabelsCount + 1}";
+
+    private string GetNextDataBackgrounfColor() => backgroundColors![dataLabelsCount];
+
+    private async Task RandomizeAsync()
+    {
+        if (chartData is null || chartData.Datasets is null || !chartData.Datasets.Any()) return;
+
+        var newDatasets = new List<IChartDataset>();
+
+        foreach (var dataset in chartData.Datasets)
+        {
+            if (dataset is PieChartDataset pieChartDataset
+                && pieChartDataset is not null
+                && pieChartDataset.Data is not null)
+            {
+                var count = pieChartDataset.Data.Count;
+
+                var newData = new List<double?>();
+                for (var i = 0; i < count; i++)
+                {
+                    newData.Add(random.Next(0, 100));
+                }
+
+                pieChartDataset.Data = newData;
+                newDatasets.Add(pieChartDataset);
+            }
+        }
+
+        chartData.Datasets = newDatasets;
+
+        await pieChart.UpdateAsync(chartData, pieChartOptions);
+    }
+
+    private List<string> GetDefaultDataLabels(int numberOfLabels)
+    {
+        var labels = new List<string>();
+        for (var index = 0; index < numberOfLabels; index++)
+        {
+            labels.Add(GetNextDataLabel());
+            dataLabelsCount += 1;
+        }
+
+        return labels;
+    }
+
+    private PieChartDataset GetRandomPieChartDataset()
+    {
+        datasetsCount += 1;
+        return new() { Label = $"Team {datasetsCount}", Data = GetRandomData(), BackgroundColor = GetRandomBackgroundColors() };
+    }
+
+    private List<double?> GetRandomData()
+    {
+        var data = new List<double?>();
+        for (var index = 0; index < dataLabelsCount; index++)
+        {
+            data.Add(random.Next(0, 100));
+        }
+
+        return data;
+    }
+
+    private List<string> GetRandomBackgroundColors()
+    {
+        var colors = new List<string>();
+        for (var index = 0; index < dataLabelsCount; index++)
+        {
+            colors.Add(backgroundColors![index]);
+        }
+
+        return colors;
+    }
+
+    private List<IChartDataset> GetDefaultDataSets(int numberOfDatasets)
+    {
+        var datasets = new List<IChartDataset>();
+
+        for (var index = 0; index < numberOfDatasets; index++)
+        {
+            datasets.Add(GetRandomPieChartDataset());
+        }
+
+        return datasets;
+    }
+
+    protected override Task OnInitializedAsync()
+    {
+        backgroundColors = ColorUtility.CategoricalTwelveColors;
+        chartData = new ChartData { Labels = GetDefaultDataLabels(4), Datasets = GetDefaultDataSets(1) };
+
+        pieChartOptions = new();
+        pieChartOptions.Responsive = true;
+        pieChartOptions.Plugins.Title!.Text = "2022 - Sales";
+        pieChartOptions.Plugins.Title.Display = true;
+        return base.OnInitializedAsync();
+    }
+
+    private async Task LoadPrograms()
+    {
+        try
+        {
+
+            return;
+
+            if (string.IsNullOrEmpty(_selectedWorkstation))
+            {
+                _customSnackbarOperator.ShowWarningMessage("Por favor selecione uma máquina para buscar as aplicações dela");
+                return;
+            }
+
+            var url = $"{InformationHandler.GetUrl()}Performance/GetPerformanceInformation";
+
+            var performanceRequest = new PerformanceRequest()
+                {
+                    MachineName = _selectedWorkstation
+                };
+
+            var r = await Http.PostAsJsonAsync(url, performanceRequest);
+
+            var json = await r.Content.ReadAsStringAsync();
+
+            var response = JsonSerializer.Deserialize<PerformanceResponse>(json);
+
+            if (response is null)
+            {
+                throw new Exception("Houve um erro ao buscar as aplicações");
+            }
+
+            if (response.Success is false)
+            {
+                throw new Exception(response.Message);
+            }
+
+
+        }
+        catch (Exception e)
+        {
+            _customSnackbarOperator.ShowErrorMessage(e.Message);
+        }
+    }
+}

@@ -7,8 +7,5 @@ namespace ClientServer.Shared.Requests.Performances
 	{
 		[JsonPropertyName("MachineName")]
         public string MachineName { get; set; }
-
-		[JsonPropertyName("CustomDate")]
-        public CustomDate CustomDate { get; set; }
     }
 }

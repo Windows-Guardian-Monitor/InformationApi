@@ -36,9 +36,10 @@
 					@foreach (var item in _workstationList)
 					{
 						<option>@item</option>
+
 					}
 				</select>
-				<Button @onclick="LoadPrograms">Carregar programas</Button>
+				<Button style="btn btn-info" @onclick="LoadPrograms">Carregar programas</Button>
 				<h4>Aplicações</h4>
 				@if (_programs is null)
 				{
