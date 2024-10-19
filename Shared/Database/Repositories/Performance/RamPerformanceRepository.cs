@@ -29,16 +29,16 @@ namespace ClientServer.Shared.Database.Repositories.Performance
 			_context.SaveChanges();
 		}
 
-		public List<RamPerformanceModel> GetByMachineAndDate(string machineName)
+		public List<RamPerformanceModel> GetByMachineAndDate(string machineName, CustomDate customDate)
 		{
-			var performances = _context.RamPerformanceMonitor.ToList().Where(p => IsWithinMachineNameAndDate(p, machineName));
+			var performances = _context.RamPerformanceMonitor.ToList().Where(p => IsWithinMachineNameAndDate(p, machineName, customDate));
 
 			return performances.ToList();
 		}
 
-		public RamPerformanceModel GetLast(string machineName)
+		public RamPerformanceModel GetLastByMachineName(string machineName)
 		{
-			var cpuPerf = _context.RamPerformanceMonitor.ToList().Where(p => IsWithinMachineNameAndDate(p, machineName)).LastOrDefault();
+			var cpuPerf = _context.RamPerformanceMonitor.ToList().Where(p => IsWithinMachineName(p, machineName)).LastOrDefault();
 
 			if (cpuPerf is not null)
 			{
@@ -48,12 +48,24 @@ namespace ClientServer.Shared.Database.Repositories.Performance
 			throw new Exception("Houve um erro ao buscar o desempenho mais recente");
 		}
 
-		private static bool IsWithinMachineNameAndDate(RamPerformanceModel performanceModel, string machineName)
+		private static bool IsWithinMachineName(RamPerformanceModel performanceModel, string machineName)
 		{
-			//var isWithinSelectedDay =
-			//	performanceModel.DateTime.Day == customDate.Day &&
-			//	performanceModel.DateTime.Month == customDate.Month &&
-			//	performanceModel.DateTime.Year == customDate.Year;
+			var isSearchedMachine = performanceModel.MachineName.Equals(machineName, StringComparison.OrdinalIgnoreCase);
+
+			if (isSearchedMachine)
+			{
+				return true;
+			}
+
+			return false;
+		}
+
+		private static bool IsWithinMachineNameAndDate(RamPerformanceModel performanceModel, string machineName, CustomDate customDate)
+		{
+			var isWithinSelectedDay =
+				performanceModel.DateTime.Day == customDate.Day &&
+				performanceModel.DateTime.Month == customDate.Month &&
+				performanceModel.DateTime.Year == customDate.Year;
 
 			var isSearchedMachine = performanceModel.MachineName.Equals(machineName, StringComparison.OrdinalIgnoreCase);
 
@@ -64,5 +76,6 @@ namespace ClientServer.Shared.Database.Repositories.Performance
 
 			return false;
 		}
+
 	}
 }

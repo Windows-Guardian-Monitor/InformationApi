@@ -3,12 +3,14 @@
 @using ClientServer.Client.Operators.Contracts
 @using ClientServer.Shared.Reponses
 @using ClientServer.Shared.Reponses.Performances
+@using ClientServer.Shared.Requests.Events
 @using ClientServer.Shared.Requests.Performances
 
 
 @inject HttpClient Http
 @inject PieChartManager _cpuPieChartManager
 @inject PieChartManager _ramPieChartManager
+@inject BarChartManager _cpuBarChartManager
 @inject ICustomSnackbarOperator _customSnackbarOperator
 
 <PageTitle>Relatório de Desempenho</PageTitle>
@@ -46,12 +48,18 @@
 			<PieChart @ref="_ramPieChartManager.PieChart" Width="500" />
 		</div>
 
+		<DateInput TValue="DateOnly" @bind-Value="@_dateChosen" Placeholder="Por favor escolha uma data" />
+		Data escolhida: @_dateChosen
+		<Button class="btn btn-info" @onclick="async() => await SeachByDay()">Buscar informações do dia escolhido</Button>
+		<BarChart @ref="_cpuBarChartManager.BarChart" Width="1000" Height="300" />
 
 	</Authorized>
 </AuthorizeView>
 
 @code
 {
+	private DateOnly _dateChosen = DateOnly.FromDateTime(DateTime.Now);
+
 	private string _selectedWorkstation;
 	private List<string> _workstationList;
 
@@ -147,6 +155,47 @@
 		} while (await periodicTimer.WaitForNextTickAsync());
 	}
 
+	private async Task SeachByDay()
+	{
+		try
+		{
+			var url = $"{InformationHandler.GetUrl()}Performance/GetSpecifcPerformanceInformation";
+
+			var customDate = new CustomDate
+				{
+					Day = _dateChosen.Day,
+					Month = _dateChosen.Month,
+					Year = _dateChosen.Year
+				};
+
+			var performanceRequest = new OneDayPerformanceRequest()
+				{
+					MachineName = _selectedWorkstation,
+					CustomDate = customDate
+				};
+
+			var r = await Http.PostAsJsonAsync(url, JsonSerializer.Serialize(performanceRequest));
+
+			var json = await r.Content.ReadAsStringAsync();
+
+			var response = JsonSerializer.Deserialize<OneDayPerformanceResponse>(json);
+
+			if (response.Success is false)
+			{
+				_customSnackbarOperator.ShowErrorMessage(response.Message);
+				return;
+			}
+		}
+		catch (Exception e)
+		{
+			_customSnackbarOperator.ShowErrorMessage(e.Message);
+		}
+		finally
+		{
+
+		}
+	}
+
 	private async Task LoadWorkstationsToSelectPerformance()
 	{
 		try
@@ -184,6 +233,7 @@
 		if (firstRender)
 		{
 			await _cpuPieChartManager.InitializeChartAsync();
+			await _cpuBarChartManager.InitializeChartAsync();
 		}
 		await base.OnAfterRenderAsync(firstRender);
 	}

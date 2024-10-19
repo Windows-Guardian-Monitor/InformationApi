@@ -33,6 +33,7 @@ namespace InformationHandlerApi
 
             builder.Services.AddTransient<CpuPerformanceRepository>();
             builder.Services.AddTransient<RamPerformanceRepository>();
+            builder.Services.AddTransient<PerformanceSeparatorService>();
                  
             builder.Services.AddTransient<IPasswordService, PasswordService>();
         }

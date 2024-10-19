@@ -28,6 +28,7 @@ namespace ClientServer.Client
             builder.Services.AddSingleton<PageNavigationHelper>();
             builder.Services.AddTransient<StartupService>();
 			builder.Services.AddTransient<PieChartManager>();
+			builder.Services.AddTransient<BarChartManager>();
 
             //Authorization
             builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
