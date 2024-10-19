@@ -32,7 +32,7 @@
 
 		@if (_workstationList is not null && _workstationList.Count > 0)
 		{
-			<select @bind="@_selectedWorkstation">
+			<select class="form-select" @bind="@_selectedWorkstation">
 				@foreach (var item in _workstationList)
 				{
 					<option>@item</option>

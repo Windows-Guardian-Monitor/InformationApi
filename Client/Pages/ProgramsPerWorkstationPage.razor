@@ -32,14 +32,18 @@
 			}
 			else
 			{
-				<select @bind="@_selectedWorkstation">
-					@foreach (var item in _workstationList)
-					{
-						<option>@item</option>
+				<div>
+					<select class="form-select" @bind="@_selectedWorkstation">
+						@foreach (var item in _workstationList)
+						{
+							<option>@item</option>
 
-					}
-				</select>
-				<Button style="btn btn-info" @onclick="LoadPrograms">Carregar programas</Button>
+						}
+					</select>
+				</div>
+				<div>
+					<Button style="margin-top: 10px" class="btn btn-info" @onclick="LoadPrograms">Carregar programas</Button>
+				</div>
 				<h4>Aplicações</h4>
 				@if (_programs is null)
 				{
