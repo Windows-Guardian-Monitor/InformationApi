@@ -18,20 +18,22 @@ namespace ClientServer.Shared.Database.Repositories
 			_context.SaveChanges();
 		}
 
-		public List<ProcessFinishedEvent> GetByDate(CustomDate date)
+		public List<ProcessFinishedEvent> GetByDateAndMachineName(CustomDate date, string machineName)
 		{
 			var processFinishedEvents = new List<ProcessFinishedEvent>();
 
-			var filteredEvents = _context.ProcessFinishedEvents.ToList().Where(p => IsWithinDate(p.Timestamp, date));
+			var filteredEvents = _context.ProcessFinishedEvents.ToList().Where(p => IsWithinDateAndMachineName(p, machineName, date));
 
 			return filteredEvents.ToList();
 		}
 
-		private static bool IsWithinDate(long timestamp, CustomDate date)
+		private static bool IsWithinDateAndMachineName(ProcessFinishedEvent p, string machineName, CustomDate customDate)
 		{
-			var d = timestamp.TimestampToDatetime();
+			var isSearchedMachine = p.MachineName.Equals(machineName, StringComparison.OrdinalIgnoreCase);
 
-			if (d.Day == date.Day && d.Month == date.Month && d.Year == date.Year)
+			var d = p.Timestamp.TimestampToDatetime();
+
+			if (d.Day == customDate.Day && d.Month == customDate.Month && d.Year == customDate.Year)
 			{
 				return true;
 			}

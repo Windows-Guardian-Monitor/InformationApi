@@ -14,59 +14,66 @@
 		<ClientServer.Client.Pages.Components.AccessDenied />
 	</NotAuthorized>
 	<Authorized>
-		<h3>Lista de Aplicações por Máquina</h3>
-		<ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_customSnackbarOperator" />
-		@if (_workstationList is null)
+		@if (IsLoading)
 		{
-			<div>
-				Carregando lista de máquinas
-			</div>
+			<ClientServer.Client.Pages.Components.LoadingComponent />
 		}
 		else
 		{
-			@if (_workstationList.Count is 0)
+			<h3>Lista de Aplicações por Máquina</h3>
+			<ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_customSnackbarOperator" />
+			@if (_workstationList is null)
 			{
 				<div>
-					Não há maquinas disponíveis
+					Carregando lista de máquinas
 				</div>
 			}
 			else
 			{
-				<div>
-					<select class="form-select" @bind="@_selectedWorkstation">
-						@foreach (var item in _workstationList)
-						{
-							<option>@item</option>
-
-						}
-					</select>
-				</div>
-				<div>
-					<Button style="margin-top: 10px" class="btn btn-info" @onclick="LoadPrograms">Carregar programas</Button>
-				</div>
-				<h4>Aplicações</h4>
-				@if (_programs is null)
+				@if (_workstationList.Count is 0)
 				{
 					<div>
-						Por favor selecione a máquina para buscar as aplicações
+						Não há maquinas disponíveis
 					</div>
 				}
 				else
 				{
-					@if (_programs.Count is 0)
+					<div>
+						<select class="form-select" @bind="@_selectedWorkstation">
+							@foreach (var item in _workstationList)
+							{
+								<option>@item</option>
+
+							}
+						</select>
+					</div>
+					<div>
+						<Button style="margin-top: 10px" class="btn btn-info" @onclick="LoadPrograms">Carregar programas</Button>
+					</div>
+					<h4>Aplicações</h4>
+					@if (_programs is null)
 					{
-						<div>Não há aplicações relacionadas a esta máquina</div>
+						<div>
+							Por favor selecione a máquina para buscar as aplicações
+						</div>
 					}
 					else
 					{
-						<div style="overflow-y: auto; border: 1px solid #ddd; padding: 0; margin: 0;">
-							<ul style="padding: 0; margin: 0; list-style: none;">
-								@foreach (var item in _programs)
-								{
-									<ClientServer.Client.Pages.Reports.ProgramListItem Program="@item" />
-								}
-							</ul>
-						</div>
+						@if (_programs.Count is 0)
+						{
+							<div>Não há aplicações relacionadas a esta máquina</div>
+						}
+						else
+						{
+							<div style="overflow-y: auto; border: 1px solid #ddd; padding: 0; margin: 0;">
+								<ul style="padding: 0; margin: 0; list-style: none;">
+									@foreach (var item in _programs)
+									{
+										<ClientServer.Client.Pages.Reports.ProgramListItem Program="@item" />
+									}
+								</ul>
+							</div>
+						}
 					}
 				}
 			}
@@ -75,6 +82,8 @@
 </AuthorizeView>
 
 @code {
+	private bool IsLoading { get; set; } = false;
+
 	private string _selectedWorkstation;
 
 	private List<string> _workstationList;
@@ -83,26 +92,39 @@
 
 	private async Task LoadWorkstations()
 	{
-		var url = $"{InformationHandler.GetUrl()}{"Information/GetAllWorkstations"}";
-
-		var response = await Http.GetFromJsonAsync<AllWorkstationsResponse>(url);
-
-		if (response is null)
+		try
 		{
-			throw new Exception("Houve um erro ao buscar as máquinas");
+			IsLoading = true;
+
+			var url = $"{InformationHandler.GetUrl()}{"Information/GetAllWorkstations"}";
+
+			var response = await Http.GetFromJsonAsync<AllWorkstationsResponse>(url);
+
+			if (response is null)
+			{
+				throw new Exception("Houve um erro ao buscar as máquinas");
+			}
+
+			if (response.Workstations.Count is 0)
+			{
+				_workstationList = new List<string>();
+				return;
+			}
+
+			_workstationList = response.Workstations.Select(w => w.HostName).ToList();
+
+			if (_workstationList.Count is 1)
+			{
+				_selectedWorkstation = _workstationList[0];
+			}
 		}
-
-		if (response.Workstations.Count is 0)
+		catch (Exception e)
 		{
-			_workstationList = new List<string>();
-			return;
+			_customSnackbarOperator.ShowErrorMessage(e.Message);
 		}
-
-		_workstationList = response.Workstations.Select(w => w.HostName).ToList();
-
-		if (_workstationList.Count is 1)
+		finally
 		{
-			_selectedWorkstation = _workstationList[0];
+			IsLoading = false;
 		}
 	}
 
@@ -110,6 +132,8 @@
 	{
 		try
 		{
+			IsLoading = true;
+
 			if (string.IsNullOrEmpty(_selectedWorkstation))
 			{
 				_customSnackbarOperator.ShowWarningMessage("Por favor selecione uma máquina para buscar as aplicações dela");
@@ -141,12 +165,17 @@
 		{
 			_customSnackbarOperator.ShowErrorMessage(e.Message);
 		}
+		finally
+		{
+			IsLoading = false;
+		}
 	}
 
 	protected override async Task OnInitializedAsync()
 	{
 		try
 		{
+			IsLoading = true;
 			await LoadWorkstations();
 		}
 		catch (Exception e)
@@ -156,6 +185,7 @@
 		finally
 		{
 			await base.OnInitializedAsync();
+			IsLoading = false;
 		}
 	}
 }

@@ -39,11 +39,13 @@ namespace InformationHandlerApi.Controllers
 		}
 
 		[HttpPost("GetEvents")]
-		public ActionResult<EventsResponse> GetEvents(EventsRequest eventsRequest)
+		public ActionResult<EventsResponse> GetEvents([FromBody] string eventsRequestJson)
 		{
 			try
 			{
-				var events = _processFinishedRepository.GetByDate(eventsRequest.CustomDate);
+				var eventsRequest = JsonSerializer.Deserialize<EventsRequest>(eventsRequestJson);
+
+				var events = _processFinishedRepository.GetByDateAndMachineName(eventsRequest.CustomDate, eventsRequest.MachineName);
 
 				return new EventsResponse(events, string.Empty, true, System.Net.HttpStatusCode.OK);
 			}

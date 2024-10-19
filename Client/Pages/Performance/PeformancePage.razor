@@ -149,26 +149,33 @@
 
 	private async Task LoadWorkstationsToSelectPerformance()
 	{
-		var url = $"{InformationHandler.GetUrl()}{"Information/GetAllWorkstations"}";
-
-		var response = await Http.GetFromJsonAsync<AllWorkstationsResponse>(url);
-
-		if (response is null)
+		try
 		{
-			throw new Exception("Houve um erro ao buscar as máquinas");
+			var url = $"{InformationHandler.GetUrl()}{"Information/GetAllWorkstations"}";
+
+			var response = await Http.GetFromJsonAsync<AllWorkstationsResponse>(url);
+
+			if (response is null)
+			{
+				throw new Exception("Houve um erro ao buscar as máquinas");
+			}
+
+			if (response.Workstations.Count is 0)
+			{
+				_workstationList = new List<string>();
+				return;
+			}
+
+			_workstationList = response.Workstations.Select(w => w.HostName).ToList();
+
+			if (_workstationList.Count is 1)
+			{
+				_selectedWorkstation = _workstationList[0];
+			}
 		}
-
-		if (response.Workstations.Count is 0)
+		catch (Exception e)
 		{
-			_workstationList = new List<string>();
-			return;
-		}
-
-		_workstationList = response.Workstations.Select(w => w.HostName).ToList();
-
-		if (_workstationList.Count is 1)
-		{
-			_selectedWorkstation = _workstationList[0];
+			_customSnackbarOperator.ShowErrorMessage(e.Message);
 		}
 	}
 
