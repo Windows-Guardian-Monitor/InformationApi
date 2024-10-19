@@ -36,6 +36,18 @@ namespace ClientServer.Shared.Database.Repositories.Performance
 			return performances.ToList();
 		}
 
+		public RamPerformanceModel GetLast(string machineName)
+		{
+			var cpuPerf = _context.RamPerformanceMonitor.ToList().Where(p => IsWithinMachineNameAndDate(p, machineName)).LastOrDefault();
+
+			if (cpuPerf is not null)
+			{
+				return cpuPerf;
+			}
+
+			throw new Exception("Houve um erro ao buscar o desempenho mais recente");
+		}
+
 		private static bool IsWithinMachineNameAndDate(RamPerformanceModel performanceModel, string machineName)
 		{
 			//var isWithinSelectedDay =

@@ -7,16 +7,21 @@ namespace ClientServer.Shared.Reponses.Performances
 	public class PerformanceResponse : StandardResponse
 	{
 		public PerformanceResponse(
-			List<CpuPerformanceModel> cpuPerformances, List<RamPerformanceModel> ramPerformances, string message, bool success, HttpStatusCode code) : base(message, success, code)
+			CpuPerformanceModel cpuPerformances, RamPerformanceModel ramPerformances, string message, bool success, HttpStatusCode code) : base(message, success, code)
 		{
-			CpuPerformances = cpuPerformances;
-			RamPerformances = ramPerformances;
+			CpuPerformance = cpuPerformances;
+			RamPerformance = ramPerformances;
 		}
 
-		[JsonPropertyName("CpuPerformances")]
-		public List<CpuPerformanceModel> CpuPerformances { get; set; }
+        public PerformanceResponse() : base(string.Empty, true, HttpStatusCode.OK)
+        {
+            
+        }
 
-		[JsonPropertyName("RamPerformances")]
-		public List<RamPerformanceModel> RamPerformances { get; set; }
+        [JsonPropertyName("CpuPerformance")]
+		public CpuPerformanceModel CpuPerformance { get; set; }
+
+		[JsonPropertyName("RamPerformance")]
+		public RamPerformanceModel RamPerformance { get; set; }
 	}
 }

@@ -1,11 +1,13 @@
 ﻿@page "/"
 @using ClientServer.Client.BackgroundServices
+@using ClientServer.Client.Models
 @using ClientServer.Client.Services
 @using ClientServer.Client.Services.Contracts
 
 @inject StartupService _startupService
 @inject PageNavigationHelper _pageNavigationHelper
 @inject IUserSessionService _userSessionService
+@inject PieChartManager _dataSetManager
 
 <PageTitle>Home</PageTitle>
 
@@ -19,9 +21,14 @@
 	</NotAuthorized>
 </AuthorizeView>
 
-@code{
+@code {
+
+	//private PieChartManager _dataSetManager = new PieChartManager();
+
 	protected override async Task OnInitializedAsync()
 	{
+		_dataSetManager.SetChartData(40, 60);
+
 		await _startupService.SetUpApplication();
 
 		var session = await _userSessionService.GetSessionInformationAsync();
@@ -31,6 +38,6 @@
 			_pageNavigationHelper.SetUserName(session.UserName);
 			StateHasChanged();
 		}
-	
+
 	}
 }

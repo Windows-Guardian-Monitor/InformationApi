@@ -1,201 +1,178 @@
 ﻿@page "/performance_report"
+@using ClientServer.Client.Models
 @using ClientServer.Client.Operators.Contracts
+@using ClientServer.Shared.Reponses
 @using ClientServer.Shared.Reponses.Performances
 @using ClientServer.Shared.Requests.Performances
 
+
 @inject HttpClient Http
+@inject PieChartManager _dataSetManager
 @inject ICustomSnackbarOperator _customSnackbarOperator
 
 <PageTitle>Relatório de Desempenho</PageTitle>
 
 <AuthorizeView>
-    <NotAuthorized>
-        <ClientServer.Client.Pages.Components.AccessDenied />
-    </NotAuthorized>
-    <Authorized>
-        <ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_customSnackbarOperator" />
-        <h3>Relatório de Desempenho das Máquinas</h3>
-        <PieChart @ref="pieChart" Width="500" />
-        <Button Type="ButtonType.Button" Color="ButtonColor.Primary" Size="ButtonSize.Small" @onclick="async () => await RandomizeAsync()"> Randomize </Button>
-        @if (_workstationList is null)
-        {
-            <div>Carregando lista de máquinas</div>
-        }
-        else
-        {
-            @if (_workstationList.Count is 0)
-            {
-                <div>Não há máquinas disponíveis para fazer o filtro</div>
-            }
-            else
-            {
-                <select @bind="@_selectedWorkstation">
-                    @foreach (var item in _workstationList)
-                    {
-                        <option>@item</option>
+	<NotAuthorized>
+		<ClientServer.Client.Pages.Components.AccessDenied />
+	</NotAuthorized>
+	<Authorized>
+		<ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_customSnackbarOperator" />
+		<h3>Relatório de Desempenho das Máquinas</h3>
+		@if (_workstationList is null)
+		{
+			<div>Carregando lista de máquinas</div>
+		}
 
-                    }
-                </select>
-                <Button style="btn btn-info" @onclick="LoadPrograms">Selecionar máquina</Button>
-            }
-        }
-    </Authorized>
+		@if (_workstationList is not null && _workstationList.Count is 0)
+		{
+			<div>Não há máquinas disponíveis para fazer o filtro</div>
+		}
+
+		@if (_workstationList is not null && _workstationList.Count > 0)
+		{
+			<select @bind="@_selectedWorkstation">
+				@foreach (var item in _workstationList)
+				{
+					<option>@item</option>
+
+				}
+			</select>
+		}
+
+		<div>
+			<PieChart @ref="_dataSetManager.PieChart" Width="500" />
+		</div>
+
+
+	</Authorized>
 </AuthorizeView>
 
 @code
 {
-    private string _selectedWorkstation;
-    private List<string> _workstationList;
+	private string _selectedWorkstation;
+	private List<string> _workstationList;
 
-    private PieChart pieChart = default!;
-    private PieChartOptions pieChartOptions = default!;
-    private ChartData chartData = default!;
-    private string[]? backgroundColors;
+	private bool _hideRamUsage = true;
 
-    private int datasetsCount = 0;
-    private int dataLabelsCount = 0;
+	private async ValueTask<PerformanceResponse> GetInfoFromServer()
+	{
+		if (string.IsNullOrEmpty(_selectedWorkstation))
+		{
+			_customSnackbarOperator.ShowWarningMessage("Por favor selecione uma máquina para buscar as o desempenho dela");
+			return null;
+		}
 
-    private Random random = new();
+		var url = $"{InformationHandler.GetUrl()}Performance/GetPerformanceInformation";
 
-    private string GetNextDataLabel() => $"Product {dataLabelsCount + 1}";
+		var performanceRequest = new PerformanceRequest()
+			{
+				MachineName = _selectedWorkstation
+			};
 
-    private string GetNextDataBackgrounfColor() => backgroundColors![dataLabelsCount];
+		var r = await Http.PostAsJsonAsync(url, performanceRequest);
 
-    private async Task RandomizeAsync()
-    {
-        if (chartData is null || chartData.Datasets is null || !chartData.Datasets.Any()) return;
+		var json = await r.Content.ReadAsStringAsync();
 
-        var newDatasets = new List<IChartDataset>();
+		var response = JsonSerializer.Deserialize<PerformanceResponse>(json);
 
-        foreach (var dataset in chartData.Datasets)
-        {
-            if (dataset is PieChartDataset pieChartDataset
-                && pieChartDataset is not null
-                && pieChartDataset.Data is not null)
-            {
-                var count = pieChartDataset.Data.Count;
+		if (response is null)
+		{
+			throw new Exception("Houve um erro ao buscar as aplicações");
+		}
 
-                var newData = new List<double?>();
-                for (var i = 0; i < count; i++)
-                {
-                    newData.Add(random.Next(0, 100));
-                }
+		if (response.Success is false)
+		{
+			throw new Exception(response.Message);
+		}
 
-                pieChartDataset.Data = newData;
-                newDatasets.Add(pieChartDataset);
-            }
-        }
+		return response;
+	}
 
-        chartData.Datasets = newDatasets;
+	private async ValueTask UpdateInfoOnScreen(PerformanceResponse response)
+	{
+		if (response is null)
+		{
+			_customSnackbarOperator.ShowWarningMessage("Atualizando");
+			return;
+		}
 
-        await pieChart.UpdateAsync(chartData, pieChartOptions);
-    }
+		try
+		{
+			if (int.TryParse(response.CpuPerformance.CpuUsagePercentage, out var used))
+			{
+				var available = 100 - used;
+				// _dataSetManager.SetChartData(available, used);
+				// await _dataSetManager.InitializeChartAsync(available, used);
+				await _dataSetManager.UpdateChart(available, used);
+			}
+			else
+			{
+				_customSnackbarOperator.ShowWarningMessage("Não foi possível converter as informações vindas do servidor");
+			}
+		}
+		finally
+		{
+			_customSnackbarOperator.Hide();
+		}
+	}
 
-    private List<string> GetDefaultDataLabels(int numberOfLabels)
-    {
-        var labels = new List<string>();
-        for (var index = 0; index < numberOfLabels; index++)
-        {
-            labels.Add(GetNextDataLabel());
-            dataLabelsCount += 1;
-        }
+	private async ValueTask SearchForNew()
+	{
+		var periodicTimer = new PeriodicTimer(TimeSpan.FromSeconds(5));
 
-        return labels;
-    }
+		do
+		{
+			try
+			{
+				await UpdateInfoOnScreen(await GetInfoFromServer());
+			}
+			catch
+			{
+				//ignored
+			}
 
-    private PieChartDataset GetRandomPieChartDataset()
-    {
-        datasetsCount += 1;
-        return new() { Label = $"Team {datasetsCount}", Data = GetRandomData(), BackgroundColor = GetRandomBackgroundColors() };
-    }
+		} while (await periodicTimer.WaitForNextTickAsync());
+	}
 
-    private List<double?> GetRandomData()
-    {
-        var data = new List<double?>();
-        for (var index = 0; index < dataLabelsCount; index++)
-        {
-            data.Add(random.Next(0, 100));
-        }
+	private async Task LoadWorkstationsToSelectPerformance()
+	{
+		var url = $"{InformationHandler.GetUrl()}{"Information/GetAllWorkstations"}";
 
-        return data;
-    }
+		var response = await Http.GetFromJsonAsync<AllWorkstationsResponse>(url);
 
-    private List<string> GetRandomBackgroundColors()
-    {
-        var colors = new List<string>();
-        for (var index = 0; index < dataLabelsCount; index++)
-        {
-            colors.Add(backgroundColors![index]);
-        }
+		if (response is null)
+		{
+			throw new Exception("Houve um erro ao buscar as máquinas");
+		}
 
-        return colors;
-    }
+		if (response.Workstations.Count is 0)
+		{
+			_workstationList = new List<string>();
+			return;
+		}
 
-    private List<IChartDataset> GetDefaultDataSets(int numberOfDatasets)
-    {
-        var datasets = new List<IChartDataset>();
+		_workstationList = response.Workstations.Select(w => w.HostName).ToList();
 
-        for (var index = 0; index < numberOfDatasets; index++)
-        {
-            datasets.Add(GetRandomPieChartDataset());
-        }
+		if (_workstationList.Count is 1)
+		{
+			_selectedWorkstation = _workstationList[0];
+		}
+	}
 
-        return datasets;
-    }
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			await _dataSetManager.InitializeChartAsync();
+		}
+		await base.OnAfterRenderAsync(firstRender);
+	}
 
-    protected override Task OnInitializedAsync()
-    {
-        backgroundColors = ColorUtility.CategoricalTwelveColors;
-        chartData = new ChartData { Labels = GetDefaultDataLabels(4), Datasets = GetDefaultDataSets(1) };
-
-        pieChartOptions = new();
-        pieChartOptions.Responsive = true;
-        pieChartOptions.Plugins.Title!.Text = "2022 - Sales";
-        pieChartOptions.Plugins.Title.Display = true;
-        return base.OnInitializedAsync();
-    }
-
-    private async Task LoadPrograms()
-    {
-        try
-        {
-
-            return;
-
-            if (string.IsNullOrEmpty(_selectedWorkstation))
-            {
-                _customSnackbarOperator.ShowWarningMessage("Por favor selecione uma máquina para buscar as aplicações dela");
-                return;
-            }
-
-            var url = $"{InformationHandler.GetUrl()}Performance/GetPerformanceInformation";
-
-            var performanceRequest = new PerformanceRequest()
-                {
-                    MachineName = _selectedWorkstation
-                };
-
-            var r = await Http.PostAsJsonAsync(url, performanceRequest);
-
-            var json = await r.Content.ReadAsStringAsync();
-
-            var response = JsonSerializer.Deserialize<PerformanceResponse>(json);
-
-            if (response is null)
-            {
-                throw new Exception("Houve um erro ao buscar as aplicações");
-            }
-
-            if (response.Success is false)
-            {
-                throw new Exception(response.Message);
-            }
-
-
-        }
-        catch (Exception e)
-        {
-            _customSnackbarOperator.ShowErrorMessage(e.Message);
-        }
-    }
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadWorkstationsToSelectPerformance();
+		Task.Run(SearchForNew);
+		await base.OnInitializedAsync();
+	}
 }

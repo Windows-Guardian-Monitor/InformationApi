@@ -56,9 +56,9 @@ namespace InformationHandlerApi.Controllers
         {
             try
             {
-                var cpuPerformances = _cpuPerformanceRepository.GetByMachineAndDate(performanceRequest.MachineName);
+                var cpuPerformances = _cpuPerformanceRepository.GetLast(performanceRequest.MachineName);
 
-                var ramPerformances = _ramPerformanceRepository.GetByMachineAndDate(performanceRequest.MachineName);
+                var ramPerformances = _ramPerformanceRepository.GetLast(performanceRequest.MachineName);
 
                 return new PerformanceResponse(cpuPerformances, ramPerformances, string.Empty, true, System.Net.HttpStatusCode.OK);
             }
