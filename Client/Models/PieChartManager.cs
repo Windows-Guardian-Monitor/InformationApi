@@ -15,17 +15,17 @@ namespace ClientServer.Client.Models
 		private int _latestUsed = 0;
 
 
-		public void SetChartData(int available, int used)
+		public void SetChartData(string chartName, int available, int used)
 		{
 			_backgroundColors = ColorUtility.CategoricalTwelveColors;
 			ChartData = new ChartData { Labels = GetDefaultDataLabels(), Datasets = GetDefaultDataSets(available, used) };
 			PieChartOptions = new();
 			PieChartOptions.Responsive = true;
-			PieChartOptions.Plugins.Title!.Text = "Uso do processador";
+			PieChartOptions.Plugins.Title!.Text = chartName;
 			PieChartOptions.Plugins.Title.Display = true;
 		}
 
-		public async ValueTask UpdateChart(int available, int used)
+		public async ValueTask UpdateChart(string chartName, int available, int used)
 		{
 			if (_latestUsed == used)
 			{
@@ -37,7 +37,7 @@ namespace ClientServer.Client.Models
 
 			if (ChartData is null || ChartData.Datasets is null || !ChartData.Datasets.Any())
 			{
-				SetChartData(available, used);
+				SetChartData(chartName, available, used);
 				await InitializeChartAsync();
 				return;
 			}
@@ -106,7 +106,7 @@ namespace ClientServer.Client.Models
 				colors.Add(_backgroundColors![index]);
 			}
 
-			return new() { Label = $"Team {_datasetsCount}", Data = data, BackgroundColor = colors };
+			return new() { Label = $"% de uso: ", Data = data, BackgroundColor = colors };
 		}
 	}
 }

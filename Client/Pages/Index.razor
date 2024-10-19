@@ -27,8 +27,6 @@
 
 	protected override async Task OnInitializedAsync()
 	{
-		_dataSetManager.SetChartData(40, 60);
-
 		await _startupService.SetUpApplication();
 
 		var session = await _userSessionService.GetSessionInformationAsync();

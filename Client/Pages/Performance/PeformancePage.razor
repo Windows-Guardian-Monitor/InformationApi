@@ -7,7 +7,8 @@
 
 
 @inject HttpClient Http
-@inject PieChartManager _dataSetManager
+@inject PieChartManager _cpuPieChartManager
+@inject PieChartManager _ramPieChartManager
 @inject ICustomSnackbarOperator _customSnackbarOperator
 
 <PageTitle>Relatório de Desempenho</PageTitle>
@@ -40,8 +41,9 @@
 			</select>
 		}
 
-		<div>
-			<PieChart @ref="_dataSetManager.PieChart" Width="500" />
+		<div style="display: flex; flex-wrap: wrap; justify-content: start">
+			<PieChart @ref="_cpuPieChartManager.PieChart" Width="500" />
+			<PieChart @ref="_ramPieChartManager.PieChart" Width="500" />
 		</div>
 
 
@@ -54,6 +56,9 @@
 	private List<string> _workstationList;
 
 	private bool _hideRamUsage = true;
+
+	const string cpuChartName = "Uso do processador";
+	const string ramChartName = "Uso da memória";
 
 	private async ValueTask<PerformanceResponse> GetInfoFromServer()
 	{
@@ -99,16 +104,23 @@
 
 		try
 		{
-			if (int.TryParse(response.CpuPerformance.CpuUsagePercentage, out var used))
+			var used = 0;
+			if (int.TryParse(response.CpuPerformance.CpuUsagePercentage, out used))
 			{
 				var available = 100 - used;
-				// _dataSetManager.SetChartData(available, used);
-				// await _dataSetManager.InitializeChartAsync(available, used);
-				await _dataSetManager.UpdateChart(available, used);
+				// _cpuPieChartManager.SetChartData(available, used);
+				// await _cpuPieChartManager.InitializeChartAsync(available, used);
+				await _cpuPieChartManager.UpdateChart(cpuChartName, available, used);
 			}
 			else
 			{
 				_customSnackbarOperator.ShowWarningMessage("Não foi possível converter as informações vindas do servidor");
+			}
+
+			if (int.TryParse(response.RamPerformance.RamUsagePercentage, out used))
+			{
+				var available = 100 - used;
+				await _ramPieChartManager.UpdateChart(ramChartName, available, used);
 			}
 		}
 		finally
@@ -164,7 +176,7 @@
 	{
 		if (firstRender)
 		{
-			await _dataSetManager.InitializeChartAsync();
+			await _cpuPieChartManager.InitializeChartAsync();
 		}
 		await base.OnAfterRenderAsync(firstRender);
 	}
