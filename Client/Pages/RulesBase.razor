@@ -6,8 +6,15 @@
 		<h3>Regras</h3>
 		<a class="btn btn-info" href="rules">Ver regras gerais</a>
 		<a class="btn btn-info" href="workstation_rules">Ver regras por máquina</a>
-		<a class="btn btn-info" href="create_rule">Criar regra geral</a>
-		<a class="btn btn-info" href="create_workstation_rule">Criar regra para máquina</a>
+		<AuthorizeView Roles="Administrator">
+			<Authorized Context="Admin">
+				<a class="btn btn-info" href="create_rule">Criar regra geral</a>
+				<a class="btn btn-info" href="create_workstation_rule">Criar regra para máquina</a>
+			</Authorized>
+			<NotAuthorized Context="Common">
+
+			</NotAuthorized>
+		</AuthorizeView>
 	</Authorized>
 	<NotAuthorized>
 		<ClientServer.Client.Pages.Components.AccessDenied />

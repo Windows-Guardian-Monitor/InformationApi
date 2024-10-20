@@ -19,76 +19,85 @@
 		<ClientServer.Client.Pages.Components.AccessDenied />
 	</NotAuthorized>
 	<Authorized>
-		<h3>Criar regras por máquina</h3>
-		@if (_programs is not null && _programs.Count > 0 && _workstations is not null && _workstations.Count > 0)
-		{
-			<div>
-				<h5>Nome da regra:</h5>
-				<input class="form-control" @bind="_ruleName" placeholder="Por favor crie um nome para esta regra" />
-			</div>
-		}
-		@if (_programs is null)
-		{
-			<div>
-				Carregando programas...
-			</div>
-		}
-		else
-		{
-			@if (_programs.Count is 0)
-			{
+		<AuthorizeView Roles="Administrator">
+			<Authorized Context="Admin">
+				<h3>Criar regras por máquina</h3>
+				@if (_programs is not null && _programs.Count > 0 && _workstations is not null && _workstations.Count > 0)
+				{
+					<div>
+						<h5>Nome da regra:</h5>
+						<input class="form-control" @bind="_ruleName" placeholder="Por favor crie um nome para esta regra" />
+					</div>
+				}
+				@if (_programs is null)
+				{
+					<div>
+						Carregando programas...
+					</div>
+				}
+				else
+				{
+					@if (_programs.Count is 0)
+					{
+						<div>
+							Não há programas cadastrados
+						</div>
+					}
+					else
+					{
+						<div style="margin-top:10px">
+							<h5>Selecione as aplicações para bloquear</h5>
+						</div>
+						<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 0; margin: 0;" class="rounded border">
+							<ul style="padding: 0; margin: 0; list-style: none;">
+								@foreach (var item in _programs)
+								{
+									<ClientServer.Client.Pages.Rules.RuleItems.ProgramToSelectItem Program="@item"></ClientServer.Client.Pages.Rules.RuleItems.ProgramToSelectItem>
+								}
+							</ul>
+						</div>
+					}
+				}
+				@if (_workstations is null)
+				{
+					<div>
+						Carregando máquinas...
+					</div>
+				}
+				else
+				{
+					@if (_workstations.Count is 0)
+					{
+						<div>
+							Não há máquinas cadastradas
+						</div>
+					}
+					else
+					{
+						<div style="margin-top:10px">
+							<h5>Selecione as máquinas para aplicar a regra</h5>
+						</div>
+						<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 0; margin-top: 10px;" class="rounded border">
+							<ul style="padding: 0; margin: 0; list-style: none;">
+								@foreach (var item in _workstations)
+								{
+									<ClientServer.Client.Pages.Rules.RuleItems.WorkstationToSelectItem WorkstationItem="item" />
+								}
+							</ul>
+						</div>
+					}
+				}
+				@if (_programs is not null && _programs.Count > 0 && _workstations is not null && _workstations.Count > 0)
+				{
+					<Button @onclick=CreateRuleOnServer style="margin-top:10px" class="btn btn-primary">Criar regra</Button>
+				}
+			</Authorized>
+			<NotAuthorized Context="Common">
 				<div>
-					Não há programas cadastrados
+					Para criar regras você deve ser um administrador
 				</div>
-			}
-			else
-			{
-				<div style="margin-top:10px">
-					<h5>Selecione as aplicações para bloquear</h5>
-				</div>
-				<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 0; margin: 0;" class="rounded border">
-					<ul style="padding: 0; margin: 0; list-style: none;">
-						@foreach (var item in _programs)
-						{
-							<ClientServer.Client.Pages.Rules.RuleItems.ProgramToSelectItem Program="@item"></ClientServer.Client.Pages.Rules.RuleItems.ProgramToSelectItem>
-						}
-					</ul>
-				</div>
-			}
-		}
-		@if (_workstations is null)
-		{
-			<div>
-				Carregando máquinas...
-			</div>
-		}
-		else
-		{
-			@if (_workstations.Count is 0)
-			{
-				<div>
-					Não há máquinas cadastradas
-				</div>
-			}
-			else
-			{
-				<div style="margin-top:10px">
-					<h5>Selecione as máquinas para aplicar a regra</h5>
-				</div>
-				<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 0; margin-top: 10px;" class="rounded border">
-					<ul style="padding: 0; margin: 0; list-style: none;">
-						@foreach (var item in _workstations)
-						{
-							<ClientServer.Client.Pages.Rules.RuleItems.WorkstationToSelectItem WorkstationItem="item" />
-						}
-					</ul>
-				</div>
-			}
-		}
-		@if (_programs is not null && _programs.Count > 0 && _workstations is not null && _workstations.Count > 0)
-		{
-			<Button @onclick=CreateRuleOnServer style="margin-top:10px" class="btn btn-primary">Criar regra</Button>
-		}
+			</NotAuthorized>
+		</AuthorizeView>
 	</Authorized>
 </AuthorizeView>
 
