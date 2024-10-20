@@ -4,6 +4,7 @@ using ClientServer.Shared.Reponses;
 using InformationHandlerApi.Business.Requests;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
+using static ClientServer.Shared.Models.ProgramWithTime;
 
 namespace InformationHandlerApi.Controllers
 {
@@ -63,6 +64,23 @@ namespace InformationHandlerApi.Controllers
 			catch (Exception e)
 			{
 				return new PerHostnameProgramsResponse(null, e.Message, false, System.Net.HttpStatusCode.OK);
+			}
+		}
+
+		[HttpPost("SendProgramWithExecutionTime")]
+		public StandardResponse SendProgramWithExecutionTime([FromBody] string completeProgramInfoJson)
+		{
+			try
+			{
+				var programsWithExecutionTime = JsonSerializer.Deserialize<DbProgramWithExecutionTime>(completeProgramInfoJson);
+
+				//TODO CONTINUAR AQUI SALVAR HORA DE EXECUÇÃO DOS PROGRAMAS
+
+				return StandardResponse.CreateOkResponse();
+			}
+			catch (Exception e)
+			{
+				return StandardResponse.CreateInternalServerErrorResponse(e.Message);
 			}
 		}
 	}
