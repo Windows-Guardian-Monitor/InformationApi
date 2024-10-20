@@ -10,10 +10,6 @@
 @inject PieChartManager _dataSetManager
 
 <PageTitle>Home</PageTitle>
-
-<BarChart @ref="manager.BarChart" Width="1000" Height="300" />
-<Button Type="ButtonType.Button" Color="ButtonColor.Primary" Size="ButtonSize.Small" @onclick="async () => await manager.UpdateAsync(cpuChartName, null)"> Randomize </Button>
-
 <AuthorizeView>
 	<Authorized>
 		<h1>Seja bem vindo(a) ao Gerenciador Endpoint Protection</h1>
@@ -25,28 +21,6 @@
 </AuthorizeView>
 
 @code {
-
-	private BarChartManager manager = new BarChartManager();
-
-	private const string cpuChartName = "Uso do processador durante o dia";
-
-	protected override void OnInitialized()
-	{
-		manager.SetChartData(cpuChartName, null);
-		// chartData = new ChartData { Labels = GetDefaultDataLabels(25), Datasets = GetDefaultDataSets() };
-		// barChartOptions = new BarChartOptions { Responsive = true, Interaction = new Interaction { Mode = InteractionMode.Index } };
-	}
-
-	protected override async Task OnAfterRenderAsync(bool firstRender)
-	{
-		if (firstRender)
-		{
-			await manager.InitializeChartAsync();
-			//await manager.BarChart.InitializeAsync(manager.ChartData, manager.BarChartOptions);
-            //await barChart.InitializeAsync(chartData, barChartOptions);
-        }
-        await base.OnAfterRenderAsync(firstRender);
-    }
 
 	protected override async Task OnInitializedAsync()
 	{

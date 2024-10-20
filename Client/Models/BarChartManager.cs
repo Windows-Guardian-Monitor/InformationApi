@@ -73,8 +73,8 @@ namespace ClientServer.Client.Models
             for (var index = 0; index < _labelsCount; index++)
             {
                 //TODO CREATE DATA HERE
-                data.Add(_random.Next(100));
-                //data.Add(intData[index]);
+                //data.Add(_random.Next(100));
+                data.Add(intData[index]);
             }
 
             return data;
@@ -120,7 +120,8 @@ namespace ClientServer.Client.Models
                     var newData = new List<double?>();
                     for (var i = 0; i < count; i++)
                     {
-                        newData.Add(_random.Next(200));
+                        newData.Add(data[i]);
+                        //newData.Add(_random.Next(200));
                     }
 
                     barChartDataset.Data = newData;

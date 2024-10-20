@@ -85,9 +85,11 @@ namespace InformationHandlerApi.Controllers
 
 				var ramPerformances = _ramPerformanceRepository.GetByMachineAndDate(performanceRequest.MachineName, performanceRequest.CustomDate);
 
-				_performanceSeparatorService.OrganizePerformanceByTimeOfDay(cpuPerformances);
+				var cpuUsageMedia = _performanceSeparatorService.OrganizePerformanceByTimeOfDay(cpuPerformances);
+				
+				var ramUsageMedia = _performanceSeparatorService.OrganizePerformanceByTimeOfDay(ramPerformances);
 
-				return new OneDayPerformanceResponse(null, null, string.Empty, true, System.Net.HttpStatusCode.OK);
+				return new OneDayPerformanceResponse(cpuUsageMedia, ramUsageMedia, string.Empty, true, System.Net.HttpStatusCode.OK);
 			}
 			catch (Exception e)
 			{

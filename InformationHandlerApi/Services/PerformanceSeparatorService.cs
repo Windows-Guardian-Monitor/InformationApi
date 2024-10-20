@@ -4,12 +4,7 @@ namespace InformationHandlerApi.Services
 {
 	public class PerformanceSeparatorService
 	{
-
-		public List<string> OrganizePerformanceByTimeOfDay(List<CpuPerformanceModel> performances)
-		{
-			var performanceByTimeOfDay = new List<string>();
-
-			var timesOfDay = new List<TimeOnly>()
+		private List<TimeOnly> _timesOfDay = new List<TimeOnly>()
 			{
 				new(0,0),
 				new(1,0),
@@ -37,32 +32,72 @@ namespace InformationHandlerApi.Services
 				new(23,0)
 			};
 
-			for (int i = 0; i < timesOfDay.Count; i++)
+		public List<int> OrganizePerformanceByTimeOfDay(List<CpuPerformanceModel> performances)
+		{
+			var performanceByTimeOfDay = new List<int>();
+
+			for (int i = 0; i < _timesOfDay.Count; i++)
 			{
-				var a = timesOfDay[i];
+				var a = _timesOfDay[i];
 
-				var breakBoth = false;
+				var results =
+					performances.Where(cpuPerformance => cpuPerformance.DateTime.Hour >= _timesOfDay[i].Hour && cpuPerformance.DateTime.Hour < (_timesOfDay[i].AddHours(1)).Hour);
 
-				//TODO CONITNUAR AQUI
-				//Fazer uma lógica para obter a média daquele desempenho no momento, para então adicionar à lista, assim vai ficar melhor
+				var rCount = results.Count();
 
-				foreach (var cpuPerformance in performances)
-                {
-					if (cpuPerformance.DateTime.Hour >= timesOfDay[i].Hour && cpuPerformance.DateTime.Hour < (timesOfDay[i].AddHours(1)).Hour)
-					{
-						performanceByTimeOfDay.Add(cpuPerformance.CpuUsagePercentage);
-						breakBoth = true;
-						break;
-					}
-				}
-
-				if (breakBoth is false)
+				if (rCount <= 0)
 				{
-					performanceByTimeOfDay.Add("0");
+					performanceByTimeOfDay.Add(0);
+					continue;
 				}
+
+				var totalUsageWithin = results.Sum(h => ConvertedUsage(h.CpuUsagePercentage));
+
+				var media = totalUsageWithin / rCount;
+
+				performanceByTimeOfDay.Add(media);
 			}
 
 			return performanceByTimeOfDay;
+		}
+
+		public List<int> OrganizePerformanceByTimeOfDay(List<RamPerformanceModel> performances)
+		{
+			var performanceByTimeOfDay = new List<int>();
+
+			for (int i = 0; i < _timesOfDay.Count; i++)
+			{
+				var a = _timesOfDay[i];
+
+				var results =
+					performances.Where(cpuPerformance => cpuPerformance.DateTime.Hour >= _timesOfDay[i].Hour && cpuPerformance.DateTime.Hour < (_timesOfDay[i].AddHours(1)).Hour);
+
+				var rCount = results.Count();
+
+				if (rCount <= 0)
+				{
+					performanceByTimeOfDay.Add(0);
+					continue;
+				}
+
+				var totalUsageWithin = results.Sum(h => ConvertedUsage(h.RamUsagePercentage));
+
+				var media = totalUsageWithin / rCount;
+
+				performanceByTimeOfDay.Add(media);
+			}
+
+			return performanceByTimeOfDay;
+		}
+
+		private static int ConvertedUsage(string usageStr)
+		{
+			if (int.TryParse(usageStr, out var usage))
+			{
+				return usage;
+			}
+
+			return 0;
 		}
 	}
 }

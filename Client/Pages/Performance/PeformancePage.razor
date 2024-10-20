@@ -10,7 +10,9 @@
 @inject HttpClient Http
 @inject PieChartManager _cpuPieChartManager
 @inject PieChartManager _ramPieChartManager
+
 @inject BarChartManager _cpuBarChartManager
+@inject BarChartManager _ramBarChartManager
 @inject ICustomSnackbarOperator _customSnackbarOperator
 
 <PageTitle>Relatório de Desempenho</PageTitle>
@@ -20,6 +22,7 @@
 		<ClientServer.Client.Pages.Components.AccessDenied />
 	</NotAuthorized>
 	<Authorized>
+
 		<ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_customSnackbarOperator" />
 		<h3>Relatório de Desempenho das Máquinas</h3>
 		@if (_workstationList is null)
@@ -44,14 +47,19 @@
 		}
 
 		<div style="display: flex; flex-wrap: wrap; justify-content: start">
-			<PieChart @ref="_cpuPieChartManager.PieChart" Width="500" />
-			<PieChart @ref="_ramPieChartManager.PieChart" Width="500" />
+			<PieChart @ref="_cpuPieChartManager.PieChart" Width="350" style="margin-bottom: 50px" />
+			<PieChart @ref="_ramPieChartManager.PieChart" Width="350" style="margin-bottom: 50px" />
 		</div>
 
 		<DateInput TValue="DateOnly" @bind-Value="@_dateChosen" Placeholder="Por favor escolha uma data" />
-		Data escolhida: @_dateChosen
-		<Button class="btn btn-info" @onclick="async() => await SeachByDay()">Buscar informações do dia escolhido</Button>
-		<BarChart @ref="_cpuBarChartManager.BarChart" Width="1000" Height="300" />
+		<div>
+			Data escolhida: @_dateChosen
+		</div>
+		<Button style="margin-bottom: 10px" class="btn btn-info" @onclick="async() => await SeachByDay()">Buscar informações do dia escolhido</Button>
+		<div style="display: flex; flex-wrap: wrap; justify-content: start">
+			<BarChart @ref="_cpuBarChartManager.BarChart" Width="750" Height="300" />
+			<BarChart @ref="_ramBarChartManager.BarChart" Width="750" Height="300" />
+		</div>
 
 	</Authorized>
 </AuthorizeView>
@@ -65,8 +73,12 @@
 
 	private bool _hideRamUsage = true;
 
-	const string cpuChartName = "Uso do processador";
-	const string ramChartName = "Uso da memória";
+	private const string _cpuChartName = "Uso do processador";
+	private const string _cpuUsageDuringDayChartName = "Uso do processador durante o dia";
+	private const string _ramChartName = "Uso da memória";
+	private const string _ramUsageDuringDayChartName = "Uso da memória durante o dia";
+
+	private bool _isLoading = false;
 
 	private async ValueTask<PerformanceResponse> GetInfoFromServer()
 	{
@@ -118,7 +130,7 @@
 				var available = 100 - used;
 				// _cpuPieChartManager.SetChartData(available, used);
 				// await _cpuPieChartManager.InitializeChartAsync(available, used);
-				await _cpuPieChartManager.UpdateChart(cpuChartName, available, used);
+				await _cpuPieChartManager.UpdateChart(_cpuChartName, available, used);
 			}
 			else
 			{
@@ -128,7 +140,7 @@
 			if (int.TryParse(response.RamPerformance.RamUsagePercentage, out used))
 			{
 				var available = 100 - used;
-				await _ramPieChartManager.UpdateChart(ramChartName, available, used);
+				await _ramPieChartManager.UpdateChart(_ramChartName, available, used);
 			}
 		}
 		finally
@@ -159,6 +171,8 @@
 	{
 		try
 		{
+			_customSnackbarOperator.Hide();
+
 			var url = $"{InformationHandler.GetUrl()}Performance/GetSpecifcPerformanceInformation";
 
 			var customDate = new CustomDate
@@ -185,6 +199,27 @@
 				_customSnackbarOperator.ShowErrorMessage(response.Message);
 				return;
 			}
+
+			var showedAny = false;
+
+			if (response.CpuPerformancesOfDay.All(c => c == 0) is false)
+			{
+				showedAny = true;
+				await _cpuBarChartManager.UpdateAsync($"{_cpuUsageDuringDayChartName} - {customDate.Day}/{customDate.Month}/{customDate.Year}", response.CpuPerformancesOfDay);
+			}
+
+			if (response.RamPerformancesOfDay.All(c => c == 0) is false)
+			{
+				showedAny = true;
+				await _ramBarChartManager.UpdateAsync($"{_ramUsageDuringDayChartName} - {customDate.Day}/{customDate.Month}/{customDate.Year}", response.RamPerformancesOfDay);
+			}
+
+			if (showedAny is false)
+			{
+				_customSnackbarOperator.ShowWarningMessage(
+					"Os gráficos diários do processador ou da memória não serão exibidos",
+					"Não há dados coletados para o dia escolhido");
+			}
 		}
 		catch (Exception e)
 		{
@@ -192,7 +227,7 @@
 		}
 		finally
 		{
-
+			_isLoading = false;
 		}
 	}
 

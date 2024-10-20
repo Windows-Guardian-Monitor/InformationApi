@@ -69,7 +69,7 @@ namespace ClientServer.Shared.Database.Repositories.Performance
 
 			var isSearchedMachine = performanceModel.MachineName.Equals(machineName, StringComparison.OrdinalIgnoreCase);
 
-			if (isSearchedMachine)
+			if (isSearchedMachine && isWithinSelectedDay)
 			{
 				return true;
 			}
