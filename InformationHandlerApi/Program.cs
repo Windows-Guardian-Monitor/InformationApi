@@ -1,15 +1,14 @@
 using ClientServer.Shared.Contracts.Repositories;
+using ClientServer.Shared.Database;
 using ClientServer.Shared.Database.Repositories;
+using ClientServer.Shared.Database.Repositories.Performance;
 using InformationHandlerApi.Contracts;
-using InformationHandlerApi.Contracts.Repositories;
-using InformationHandlerApi.Database;
-using InformationHandlerApi.Database.Repositories;
 using InformationHandlerApi.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace InformationHandlerApi
 {
-    public class Program
+	public class Program
     {
         private static void ConfigureServices(WebApplicationBuilder builder)
         {
@@ -22,10 +21,21 @@ namespace InformationHandlerApi
             builder.Services.AddHostedService<DatabaseHandlerService>();
 
             builder.Services.AddTransient<IEmailService, EmailService>();
+
+
+            builder.Services.AddTransient<ProcessFinishedRepository>();
+            builder.Services.AddTransient<WorkstationRulesRepository>();
+
             builder.Services.AddTransient<IWindowsWorkstationRepository, WindowsWorkstationRepository>();
             builder.Services.AddTransient<IProgramRepository, ProgramRepository>();
             builder.Services.AddTransient<IRuleRepository, RuleRepository>();
             builder.Services.AddTransient<IUserRepository, UserRepository>();
+
+            builder.Services.AddTransient<CpuPerformanceRepository>();
+            builder.Services.AddTransient<RamPerformanceRepository>();
+            builder.Services.AddTransient<PerformanceSeparatorService>();
+                 
+            builder.Services.AddTransient<IPasswordService, PasswordService>();
         }
 
         public static void Main(string[] args)

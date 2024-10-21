@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Text.Json.Serialization;
 
-namespace InformationHandlerApi.Business.Responses
+namespace ClientServer.Shared.Reponses
 {
 	public class StandardResponse
 	{

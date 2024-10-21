@@ -1,9 +1,12 @@
-﻿@using ClientServer.Client.Services.Contracts
+﻿@using ClientServer.Client.Services
+@using ClientServer.Client.Services.Contracts
 @inject NavigationManager NavigationManager
 @inject IUserSessionService _userSessionService
+@inject PageNavigationHelper _pageNavigationHelper
 
 <AuthorizeView>
 	<Authorized>
+		<div style="margin-right: 10px">Nome de usuário: @_pageNavigationHelper.UserName</div>
 		<button @onclick="Logout" Class="btn btn-danger">Logout</button>
 	</Authorized>
 	<NotAuthorized>
@@ -12,6 +15,49 @@
 </AuthorizeView>
 
 @code {
+
+	private async Task SetUserName()
+	{
+		var session = await _userSessionService.GetSessionInformationAsync();
+
+		if (session is null)
+		{
+			_pageNavigationHelper.SetUserName(string.Empty);
+			return;
+		}
+
+		_pageNavigationHelper.SetUserName(session.UserName);
+	}
+
+	private async Task LocationChanged()
+	{
+		await SetUserName();
+		StateHasChanged();
+	}
+
+	protected override void OnInitialized()
+	{
+		NavigationManager.LocationChanged += async (s, e) => await LocationChanged();
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		await SetUserName();
+		await base.OnInitializedAsync();
+	}
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		await SetUserName();
+		await base.OnAfterRenderAsync(firstRender);
+	}
+
+	protected override async Task OnParametersSetAsync()
+	{
+		await SetUserName();
+		await base.OnParametersSetAsync();
+	}
+
 	void Login()
 	{
 		NavigationManager.NavigateTo("login");
@@ -20,5 +66,7 @@
 	async Task Logout()
 	{
 		await _userSessionService.Logout();
+		_pageNavigationHelper.SetUserName(string.Empty);
+		StateHasChanged();
 	}
 }

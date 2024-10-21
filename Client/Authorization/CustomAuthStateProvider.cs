@@ -20,6 +20,8 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
 		_httpClient = httpClient;
 	}
 
+	public async Task<UserSessionInformation> GetSessionInformation() => await _localStorageService.GetItemAsync<UserSessionInformation>(token);
+
 	public override async Task<AuthenticationState> GetAuthenticationStateAsync()
 	{
 		var state = new AuthenticationState(_anonymousClaims);

@@ -1,6 +1,7 @@
 ﻿@page "/login"
 @using ClientServer.Client.Models
 @using ClientServer.Client.Operators.Contracts
+@using ClientServer.Client.Services
 @using ClientServer.Client.Services.Contracts
 @using ClientServer.Shared.DataTransferObjects.Authentication
 @using System.Text.Json
@@ -9,19 +10,36 @@
 @inject IUserSessionService _userSessionService
 @inject ICustomSnackbarOperator _snackbarOperator
 @inject NavigationManager NavigationManager
-<h3>Login</h3>
+@inject PageNavigationHelper _pageNavigationHelper
+
+<PageTitle>Login</PageTitle>
 <ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_snackbarOperator" />
-<EditForm Model="user" OnSubmit="HandleLogin">
-	<label for="userName">Nome de usuário</label>
-	<InputText id="username" @bind-Value="user.UserName" />
+<AuthorizeView>
+	<Authorized>
+		<h3>Esta tela só pode ser acessada enquanto você não estiver logado</h3>
+	</Authorized>
+	<NotAuthorized Context="notAuthorized">
+		<h3>Login</h3>
+		<EditForm Context="notAuthorizedEditForm" Model="user" OnSubmit="HandleLogin">
+			<label for="userName">Nome de usuário</label>
+			<InputText id="username" @bind-Value="user.UserName" />
 
-	<label for="password">Senha</label>
-	<InputText id="password" @bind-Value="user.Password" type="password" />
+			<label for="password">Senha</label>
+			<InputText id="password" @bind-Value="user.Password" type="password" />
 
-	<Button Type="ButtonType.Submit" Class="btn btn-primary">Entrar</Button>
-</EditForm>
+			<Button Type="ButtonType.Submit" Class="btn btn-primary">Entrar</Button>
+			<label @onclick="@GoToForgotEmailPage">Esqueci minha senha...</label>
+		</EditForm>
+	</NotAuthorized>
+</AuthorizeView>
 
 @code {
+
+	void GoToForgotEmailPage()
+	{
+		NavigationManager.NavigateTo("/resetPassword");
+	}
+
 	UserDto user = new UserDto();
 
 	async Task HandleLogin()
@@ -40,11 +58,17 @@
 				return;
 			}
 
+			if (loginResponse.RequestPasswordChange)
+			{
+				NavigationManager.NavigateTo("/newPassword");
+				return;
+			}
+
 			var userSession = new UserSessionInformation(loginResponse.UserName, loginResponse.Role, loginResponse.JwtToken);
 
 			await _userSessionService.Login(userSession);
 
-			NavigationManager.NavigateTo("/");
+			NavigationManager.NavigateTo("/");			
 		}
 		catch (Exception e)
 		{

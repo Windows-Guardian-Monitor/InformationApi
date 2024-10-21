@@ -1,5 +1,4 @@
-﻿using InformationHandlerApi.Business.Responses;
-using InformationHandlerApi.Database.Models;
+﻿using ClientServer.Shared.Database.Models;
 using System.Net;
 using System.Text.Json.Serialization;
 

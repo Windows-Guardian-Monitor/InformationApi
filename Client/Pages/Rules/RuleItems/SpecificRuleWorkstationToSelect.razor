@@ -1,0 +1,55 @@
+﻿@using ClientServer.Shared.DataTransferObjects
+@using ClientServer.Shared.Database.Models
+<div class="d-flex justify-content-between align-items-center p-2 border-bottom" style="background-color:@_color">
+	<div class="d-flex flex-column flex-grow-1">
+		<span class="flex-grow-1">@WorkstationItem.Hostname</span>
+	</div>
+	<Button @onclick="ToggleSelect" class="btn btn-primary">@_buttonText</Button>
+</div>
+
+@code {
+	[Parameter]
+	public WorkstationSpecificDbRuleWorkstation WorkstationItem { get; set; }
+	const string _select = "Marcar";
+	const string _unselect = "Desmarcar";
+
+	private string _color = string.Empty;
+	private string _buttonText = _select;
+
+	void ToggleSelect()
+	{
+		if (WorkstationItem.Selected)
+		{
+			WorkstationItem.Selected = false;
+			_color = string.Empty;
+			_buttonText = _select;
+			return;
+		}
+
+		WorkstationItem.Selected = true;
+		_color = "#89CFF0";
+		_buttonText = _unselect;
+		// _color = "Pink";
+	}
+
+	void UpdateSelect()
+	{
+		if (WorkstationItem.Selected)
+		{
+			WorkstationItem.Selected = true;
+			_color = "#89CFF0";
+			_buttonText = _unselect;
+			return;
+		}
+
+		WorkstationItem.Selected = false;
+		_color = string.Empty;
+		_buttonText = _select;
+	}
+
+	protected override void OnInitialized()
+	{
+		UpdateSelect();
+		base.OnInitialized();
+	}
+}

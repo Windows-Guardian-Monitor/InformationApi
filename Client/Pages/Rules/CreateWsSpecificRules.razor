@@ -1,0 +1,207 @@
+﻿@page "/create_workstation_rule"
+@using ClientServer.Client.Operators.Contracts
+@using ClientServer.Shared.DataTransferObjects
+@using ClientServer.Shared.Database.Models
+@using ClientServer.Shared.Reponses
+@using ClientServer.Shared.Requests
+@using ClientServer.Shared.Requests.Rules
+
+<PageTitle>Criação de Regras Específicas</PageTitle>
+
+@inject ICustomSnackbarOperator _customSnackbarOperator
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_customSnackbarOperator" />
+
+<AuthorizeView>
+	<NotAuthorized>
+		<ClientServer.Client.Pages.Components.AccessDenied />
+	</NotAuthorized>
+	<Authorized>
+		<AuthorizeView Roles="Administrator">
+			<Authorized Context="Admin">
+				<h3>Criar regras por máquina</h3>
+				@if (_programs is not null && _programs.Count > 0 && _workstations is not null && _workstations.Count > 0)
+				{
+					<div>
+						<h5>Nome da regra:</h5>
+						<input class="form-control" @bind="_ruleName" placeholder="Por favor crie um nome para esta regra" />
+					</div>
+				}
+				@if (_programs is null)
+				{
+					<div>
+						Carregando programas...
+					</div>
+				}
+				else
+				{
+					@if (_programs.Count is 0)
+					{
+						<div>
+							Não há programas cadastrados
+						</div>
+					}
+					else
+					{
+						<div style="margin-top:10px">
+							<h5>Selecione as aplicações para bloquear</h5>
+						</div>
+						<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 0; margin: 0;" class="rounded border">
+							<ul style="padding: 0; margin: 0; list-style: none;">
+								@foreach (var item in _programs)
+								{
+									<ClientServer.Client.Pages.Rules.RuleItems.ProgramToSelectItem Program="@item"></ClientServer.Client.Pages.Rules.RuleItems.ProgramToSelectItem>
+								}
+							</ul>
+						</div>
+					}
+				}
+				@if (_workstations is null)
+				{
+					<div>
+						Carregando máquinas...
+					</div>
+				}
+				else
+				{
+					@if (_workstations.Count is 0)
+					{
+						<div>
+							Não há máquinas cadastradas
+						</div>
+					}
+					else
+					{
+						<div style="margin-top:10px">
+							<h5>Selecione as máquinas para aplicar a regra</h5>
+						</div>
+						<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 0; margin-top: 10px;" class="rounded border">
+							<ul style="padding: 0; margin: 0; list-style: none;">
+								@foreach (var item in _workstations)
+								{
+									<ClientServer.Client.Pages.Rules.RuleItems.WorkstationToSelectItem WorkstationItem="item" />
+								}
+							</ul>
+						</div>
+					}
+				}
+				@if (_programs is not null && _programs.Count > 0 && _workstations is not null && _workstations.Count > 0)
+				{
+					<Button @onclick=CreateRuleOnServer style="margin-top:10px" class="btn btn-primary">Criar regra</Button>
+				}
+			</Authorized>
+			<NotAuthorized Context="Common">
+				<div>
+					Para criar regras você deve ser um administrador
+				</div>
+			</NotAuthorized>
+		</AuthorizeView>
+	</Authorized>
+</AuthorizeView>
+
+@code {
+	private List<DbRuleProgram> _programs;
+	private List<SimpleWorkstationItem> _workstations;
+
+	private string _ruleName = string.Empty;
+
+	private async Task CreateRuleOnServer()
+	{
+		try
+		{
+			_customSnackbarOperator.Hide();
+
+			if (_programs.Any(p => p.Selected) is false)
+			{
+				_customSnackbarOperator.ShowWarningMessage("Por favor selecione pelo menos uma aplicação para criar uma regra.");
+				return;
+			}
+
+			if (_workstations.Any(p => p.Selected) is false)
+			{
+				_customSnackbarOperator.ShowWarningMessage("Por favor selecione pelo menos uma máquina para criar uma regra.");
+				return;
+			}
+
+			if (string.IsNullOrWhiteSpace(_ruleName))
+			{
+				_customSnackbarOperator.ShowWarningMessage("Cada regra precisa ter um nome.");
+				return;
+			}
+
+			var selectedPrograms = _programs.Where(p => p.Selected).ToList();
+
+			var selectedWorkstations = _workstations.Where(w => w.Selected).ToList();
+
+			const string endpoint = "CreateForWorkstation";
+
+			var url = $"{InformationHandler.GetUrl()}Rules/{endpoint}";
+
+			var createWsSpecificRule = new CreateWsSpecificRuleRequest()
+				{
+					RuleName = _ruleName,
+					Programs = selectedPrograms,
+					Workstations = selectedWorkstations
+				};
+
+			var json = JsonSerializer.Serialize(createWsSpecificRule);
+
+			var rawResponse = await Http.PostAsJsonAsync(url, json);
+
+			json = await rawResponse.Content.ReadAsStringAsync();
+
+			var response = JsonSerializer.Deserialize<StandardResponse>(json);
+
+			if (response.Success is false)
+			{
+				_customSnackbarOperator.ShowErrorMessage(response.Message);
+				return;
+			}
+
+			_customSnackbarOperator.ShowInformationMessage("Regra criada com sucesso", "Você será redirecionado(a) à página de regras por máquina em instantes");
+
+			StateHasChanged();
+
+			await (new PeriodicTimer(TimeSpan.FromSeconds(3))).WaitForNextTickAsync();
+
+			NavigationManager.NavigateTo("workstation_rules");
+		}
+		catch (Exception e)
+		{
+			_customSnackbarOperator.ShowErrorMessage(e.Message);
+		}
+	}
+
+	private async Task LoadPrograms()
+	{
+		const string endpoint = "Program";
+
+		var url = $"{InformationHandler.GetUrl()}{endpoint}";
+
+		var response = await Http.GetAsync(url);
+
+		var content = await response.Content.ReadAsStringAsync();
+
+		_programs = JsonSerializer.Deserialize<List<DbRuleProgram>>(content);
+	}
+
+	private async Task LoadWorkstations()
+	{
+		const string _endpoint = "Information/GetAllWorkstations";
+
+		var url = $"{InformationHandler.GetUrl()}{_endpoint}";
+
+		var response = await Http.GetFromJsonAsync<AllWorkstationsResponse>(url);
+
+		_workstations = response.Workstations;
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadPrograms();
+		await LoadWorkstations();
+		await base.OnInitializedAsync();
+	}
+}

@@ -1,0 +1,12 @@
+﻿@using ClientServer.Shared.Database.Models
+<div class="d-flex justify-content-between align-items-center p-2 border-bottom">
+	<div class="d-flex flex-column flex-grow-1">
+		<span class="flex-grow-1">@Program.Name</span>
+		<span class="flex-grow-1">@Program.Path</span>
+	</div>
+</div>
+
+@code {
+	[Parameter]
+	public DbProgram Program { get; set; }
+}

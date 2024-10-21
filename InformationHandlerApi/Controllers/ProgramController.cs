@@ -1,9 +1,10 @@
-﻿using InformationHandlerApi.Business.Requests;
-using InformationHandlerApi.Business.Responses;
-using InformationHandlerApi.Contracts.Repositories;
-using InformationHandlerApi.Database.Models;
+﻿using ClientServer.Shared.Contracts.Repositories;
+using ClientServer.Shared.Database.Models;
+using ClientServer.Shared.Reponses;
+using InformationHandlerApi.Business.Requests;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
+using static ClientServer.Shared.Models.ProgramWithTime;
 
 namespace InformationHandlerApi.Controllers
 {
@@ -23,15 +24,15 @@ namespace InformationHandlerApi.Controllers
 		{
 			try
 			{
-				var programs = JsonSerializer.Deserialize<List<ProgramRequest>>(serializedProgramList);
+				var programs = JsonSerializer.Deserialize<List<ProgramRequestItem>>(serializedProgramList);
 
 				if (programs is null)
 				{
 					return new ValueTask<ActionResult<StandardResponse>>(new StandardResponse("Could not obtain workstation info", false, System.Net.HttpStatusCode.InternalServerError));
 				}
 
-				foreach (ProgramRequest? program in programs)
-                {
+				foreach (ProgramRequestItem? program in programs)
+				{
 					if (_programRepository.Exists(program.Hash))
 					{
 						continue;
@@ -40,7 +41,7 @@ namespace InformationHandlerApi.Controllers
 					_programRepository.Insert(program);
 				}
 
-                return new ValueTask<ActionResult<StandardResponse>>(new StandardResponse("OK", true, System.Net.HttpStatusCode.OK));
+				return new ValueTask<ActionResult<StandardResponse>>(new StandardResponse("OK", true, System.Net.HttpStatusCode.OK));
 			}
 			catch (Exception e)
 			{
@@ -50,5 +51,37 @@ namespace InformationHandlerApi.Controllers
 
 		[HttpGet(Name = "GetAll")]
 		public List<DbProgram> Get() => _programRepository.GetAll();
+
+		[HttpPost("GetPerHostname")]
+		public PerHostnameProgramsResponse Post([FromBody] string hostName)
+		{
+			try
+			{
+				var programs = _programRepository.GetByHostname(hostName);
+
+				return new PerHostnameProgramsResponse(programs, string.Empty, true, System.Net.HttpStatusCode.OK);
+			}
+			catch (Exception e)
+			{
+				return new PerHostnameProgramsResponse(null, e.Message, false, System.Net.HttpStatusCode.OK);
+			}
+		}
+
+		[HttpPost("SendProgramWithExecutionTime")]
+		public StandardResponse SendProgramWithExecutionTime([FromBody] string completeProgramInfoJson)
+		{
+			try
+			{
+				var programsWithExecutionTime = JsonSerializer.Deserialize<DbProgramWithExecutionTime>(completeProgramInfoJson);
+
+				//TODO CONTINUAR AQUI SALVAR HORA DE EXECUÇÃO DOS PROGRAMAS
+
+				return StandardResponse.CreateOkResponse();
+			}
+			catch (Exception e)
+			{
+				return StandardResponse.CreateInternalServerErrorResponse(e.Message);
+			}
+		}
 	}
 }

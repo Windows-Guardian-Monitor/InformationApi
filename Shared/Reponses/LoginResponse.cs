@@ -1,5 +1,4 @@
-﻿using InformationHandlerApi.Business.Responses;
-using System.Net;
+﻿using System.Net;
 using System.Text.Json.Serialization;
 
 namespace ClientServer.Shared.Reponses

@@ -1,0 +1,194 @@
+﻿@page "/reports_process"
+@using ClientServer.Client.Models
+@using ClientServer.Client.Operators.Contracts
+@using ClientServer.Shared.Reponses
+@using ClientServer.Shared.Requests.Events
+@using ClientServer.Shared.Extensions
+@inject ICustomSnackbarOperator _snackbarOperator
+@inject HttpClient Http
+<PageTitle>Processos Finalizados</PageTitle>
+<ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_snackbarOperator" />
+
+<AuthorizeView>
+	<NotAuthorized>
+		<ClientServer.Client.Pages.Components.AccessDenied />
+	</NotAuthorized>
+	<Authorized>
+		@if (IsLoading)
+		{
+			<ClientServer.Client.Pages.Components.LoadingComponent />
+		}
+		else
+		{
+			@if (_workstationList is null)
+			{
+				<div>
+					Buscando máquinas encontradas
+				</div>
+			}
+			else
+			{
+				@if (_workstationList.Count is 0)
+				{
+					<div>Não foram encontradas máquinas</div>
+				}
+				else
+				{
+					<h3>Processos finalizados por data</h3>
+
+					<div class="d-flex flex-column align-items-start p-3 rounded border">
+						<DateInput TValue="DateOnly" @bind-Value="@_dateChosen" Placeholder="Por favor escolha uma data" />
+						Data escolhida: @_dateChosen
+						<select class="form-select" @bind="@_selectedWorkstation">
+							@foreach (var item in _workstationList)
+							{
+								<option>@item</option>
+							}
+						</select>
+						Máquina escolhida: @_selectedWorkstation
+						<Button @onclick="@FetchEvents" class="btn btn-info">Buscar eventos</Button>
+					</div>
+					@if (_events.Count is 0)
+					{
+						<div style="margin-top: 10px">
+							Não há eventos encontrados nesta data
+						</div>
+					}
+					else
+					{
+						<div style="overflow-y: auto; border: 1px solid #ddd; padding: 0; margin-top: 10px;" class="rounded border">
+							<ul style="padding: 0; margin: 0; list-style: none;">
+								@foreach (var item in _events)
+								{
+									<ClientServer.Client.Pages.Reports.Events.EventComponent ProcessFinishedEvent="item" />
+								}
+							</ul>
+						</div>
+					}
+				}
+			}
+		}
+	</Authorized>
+</AuthorizeView>
+
+@code {
+	private string? _selectedWorkstation;
+	private List<string>? _workstationList;
+
+	private DateOnly _dateChosen = DateOnly.FromDateTime(DateTime.Now);
+
+	private List<ScreenEvent> _events = new List<ScreenEvent>();
+
+	private bool IsLoading { get; set; } = false;
+
+	private async Task LoadEvents()
+	{
+		try
+		{
+			IsLoading = true;
+
+			if (string.IsNullOrEmpty(_selectedWorkstation))
+			{
+				_snackbarOperator.ShowWarningMessage("Por favor selecione uma máquina para buscar eventos");
+				return;
+			}
+
+			_events = new List<ScreenEvent>();
+
+			const string endpoint = "Events";
+
+			var url = $"{InformationHandler.GetUrl()}{endpoint}/GetEvents";
+
+			var customDate = new CustomDate()
+				{
+					Day = _dateChosen.Day,
+					Month = _dateChosen.Month,
+					Year = _dateChosen.Year
+				};
+
+			var req = new EventsRequest()
+				{
+					CustomDate = customDate,
+					MachineName = _selectedWorkstation
+				};
+
+			var response = await Http.PostAsJsonAsync(url, JsonSerializer.Serialize(req));
+
+			var json = await response.Content.ReadAsStringAsync();
+
+			var eventsResponse = JsonSerializer.Deserialize<EventsResponse>(json);
+
+			if (eventsResponse?.Success is false)
+			{
+				_snackbarOperator.ShowErrorMessage(eventsResponse.Message);
+				return;
+			}
+
+			foreach (var e in eventsResponse.Events)
+			{
+				_events.Add(new ScreenEvent
+					{
+						DateTime = e.Timestamp.TimestampToDatetime(),
+						Domain = e.Domain,
+						UserName = e.UserName,
+						MachineName = e.MachineName,
+						ProgramPath = e.ProgramPath
+					});
+			}
+		}
+		catch (Exception e)
+		{
+			_snackbarOperator.ShowErrorMessage(e.Message);
+		}
+		finally
+		{
+			IsLoading = false;
+		}
+	}
+
+	private async Task LoadWorkstationsToShowProcessesFinished()
+	{
+		try
+		{
+			IsLoading = true;
+
+			var url = $"{InformationHandler.GetUrl()}{"Information/GetAllWorkstations"}";
+
+			var response = await Http.GetFromJsonAsync<AllWorkstationsResponse>(url);
+
+			if (response is null)
+			{
+				throw new Exception("Houve um erro ao buscar as máquinas");
+			}
+
+			if (response.Workstations.Count is 0)
+			{
+				_workstationList = new List<string>();
+				return;
+			}
+
+			_workstationList = response.Workstations.Select(w => w.HostName).ToList();
+
+			if (_workstationList.Count is 1)
+			{
+				_selectedWorkstation = _workstationList[0];
+			}
+		}
+		catch (Exception e)
+		{
+			_snackbarOperator.ShowErrorMessage(e.Message);
+		}
+		finally
+		{
+			IsLoading = false;
+		}
+	}
+
+	private async Task FetchEvents() => await LoadEvents();
+
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadWorkstationsToShowProcessesFinished();
+		await LoadEvents();
+	}
+}

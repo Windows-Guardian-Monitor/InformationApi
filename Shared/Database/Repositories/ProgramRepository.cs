@@ -1,9 +1,9 @@
-﻿using InformationHandlerApi.Contracts.Repositories;
-using InformationHandlerApi.Database.Models;
+﻿using ClientServer.Shared.Contracts.Repositories;
+using ClientServer.Shared.Database.Models;
 
-namespace InformationHandlerApi.Database.Repositories
+namespace ClientServer.Shared.Database.Repositories
 {
-    public class ProgramRepository : IProgramRepository
+	public class ProgramRepository : IProgramRepository
 	{
 		private readonly DatabaseContext _context;
 
@@ -26,5 +26,7 @@ namespace InformationHandlerApi.Database.Repositories
 		}
 
 		public List<DbProgram> GetAll() => _context.Programs.ToList();
+
+		public List<DbProgram> GetByHostname(string hostName) => _context.Programs.ToList().Where(p => p.Hostname.Equals(hostName, StringComparison.OrdinalIgnoreCase)).ToList();
 	}
 }

@@ -4,7 +4,7 @@ namespace ClientServer.Shared.Requests
 {
 	public class GetRuleByWsRequest
 	{
-		[JsonPropertyName("MachineUuid")]
-        public string MachineUuid { get; set; }
+		[JsonPropertyName("Hostname")]
+		public string Hostname { get; set; }
     }
 }

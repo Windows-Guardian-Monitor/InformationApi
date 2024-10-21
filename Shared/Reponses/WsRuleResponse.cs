@@ -1,4 +1,4 @@
-﻿using InformationHandlerApi.Database.Models;
+﻿using ClientServer.Shared.Database.Models;
 using System.Text.Json.Serialization;
 
 namespace ClientServer.Shared.Reponses

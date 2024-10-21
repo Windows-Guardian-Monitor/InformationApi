@@ -1,0 +1,75 @@
+﻿@page "/resetPassword"
+@using ClientServer.Client.Operators.Contracts
+@using ClientServer.Shared.DataTransferObjects.Authentication
+@using ClientServer.Shared.Reponses
+
+@inject HttpClient Http
+@inject ICustomSnackbarOperator _snackbarOperator
+<PageTitle>Resetar Senha</PageTitle>
+<AuthorizeView>
+	<Authorized>
+		<h3>Esta tela só pode ser acessada enquanto você não estiver logado</h3>
+	</Authorized>
+	<NotAuthorized Context="notAuthorizedContext">
+		@if (_isLoading)
+		{
+			<ClientServer.Client.Pages.Components.LoadingComponent />
+		}
+		else
+		{
+			<ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_snackbarOperator" />
+			<h3>Resetar a senha</h3>
+
+			<EditForm Context="notAuthorizedContextEditForm" Model="resetPasswordDto" OnSubmit="HandlePasswordReset">
+				<InputText type="email" id="email" @bind-Value="resetPasswordDto.Email" style="width: 500px" />
+
+				<Button Type="ButtonType.Submit" Class="btn btn-primary">Enviar e-mail</Button>
+			</EditForm>
+		}
+	</NotAuthorized>
+</AuthorizeView>
+
+
+@code {
+	ResetPasswordDto resetPasswordDto = new ResetPasswordDto();
+
+	private bool _isLoading = false;
+
+	protected override Task OnInitializedAsync()
+	{
+		_snackbarOperator.ShowInformationMessage(
+			"Por favor entre com seu e-mail cadastrado",
+		"Se ele estiver correto você irá receber uma mensagem com os próximos passos para resetar sua senha");
+		return base.OnInitializedAsync();
+	}
+
+	async Task HandlePasswordReset()
+	{
+		try
+		{
+			_isLoading = true;
+
+			var result = await Http.PostAsJsonAsync("https://localhost:7102/auth/ResetPassword", resetPasswordDto);
+
+			var json = await result.Content.ReadAsStringAsync();
+
+			var loginResponse = JsonSerializer.Deserialize<StandardResponse>(json);
+
+			if (loginResponse.Success is false)
+			{
+				_snackbarOperator.ShowErrorMessage(loginResponse.Message);
+				return;
+			}
+
+			_snackbarOperator.ShowInformationMessage("Por favor cheque seu e-mail");
+		}
+		catch (Exception e)
+		{
+			_snackbarOperator.ShowErrorMessage(e.Message);
+		}
+		finally
+		{
+			_isLoading = false;
+		}
+	}
+}

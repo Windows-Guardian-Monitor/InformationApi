@@ -1,8 +1,9 @@
-﻿using InformationHandlerApi.Contracts.Repositories;
-using InformationHandlerApi.Database.Models;
+﻿using ClientServer.Shared.Contracts.Repositories;
+using ClientServer.Shared.Database;
+using ClientServer.Shared.Database.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace InformationHandlerApi.Database.Repositories
+namespace ClientServer.Shared.Database.Repositories
 {
 	public class RuleRepository : IRuleRepository
 	{

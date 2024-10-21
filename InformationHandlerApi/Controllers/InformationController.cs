@@ -1,8 +1,7 @@
-﻿using ClientServer.Shared.DataTransferObjects;
+﻿using ClientServer.Shared.Contracts.Repositories;
+using ClientServer.Shared.Database.Models;
+using ClientServer.Shared.DataTransferObjects;
 using ClientServer.Shared.Reponses;
-using InformationHandlerApi.Business.Responses;
-using InformationHandlerApi.Contracts.Repositories;
-using InformationHandlerApi.Database.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Text.Json;
@@ -20,12 +19,12 @@ namespace InformationHandlerApi.Controllers
 			_windowsWorkstationRepository = windowsWorkstationRepository;
 		}
 
-		[HttpGet(Name = "GetInformation")]
-		public object Get()
-		{
+		//[HttpGet(Name = "GetInformation")]
+		//public object Get()
+		//{
 
-			return new { Data = "sample" };
-		}
+		//	return new { Data = "sample" };
+		//}
 
 		[HttpPost("Workstation")]
 		public async ValueTask<ActionResult<StandardResponse>> PostWs([FromBody] byte[] windowsWorkstationBytes)
@@ -109,30 +108,37 @@ namespace InformationHandlerApi.Controllers
 		}
 
 		[HttpGet("GetAllWorkstations")]
-		public ActionResult<List<SimpleWorkstationItem>> GetSimpleWorkstations()
+		public AllWorkstationsResponse GetSimpleWorkstations()
 		{
-			if (_windowsWorkstationRepository.Count() is 0)
+			try
 			{
-				return new List<SimpleWorkstationItem>();
-			}
-
-			var workstations = _windowsWorkstationRepository.SelectWorkstations();
-
-			var items = new List<SimpleWorkstationItem>();
-
-			foreach (var dbWorkstation in workstations)
-			{
-				var workstationItem = new SimpleWorkstationItem
+				if (_windowsWorkstationRepository.Count() is 0)
 				{
-					HostName = dbWorkstation.HostName,
-					Id = dbWorkstation.Id,
-					Uuid = dbWorkstation.Uuid
-				};
+					return new AllWorkstationsResponse(new List<SimpleWorkstationItem>(), "Não há máquinas disponíveis", false, HttpStatusCode.OK);
+				}
 
-				items.Add(workstationItem);
+				var workstations = _windowsWorkstationRepository.SelectWorkstations();
+
+				var items = new List<SimpleWorkstationItem>();
+
+				foreach (var dbWorkstation in workstations)
+				{
+					var workstationItem = new SimpleWorkstationItem
+					{
+						HostName = dbWorkstation.HostName,
+						Id = dbWorkstation.Id,
+						Uuid = dbWorkstation.Uuid
+					};
+
+					items.Add(workstationItem);
+				}
+
+				return new AllWorkstationsResponse(items, string.Empty, true, HttpStatusCode.OK);
 			}
-
-			return items;
+			catch (Exception e)
+			{
+				return new AllWorkstationsResponse(null, e.Message, false, HttpStatusCode.OK);
+			}
 		}
 	}
 }

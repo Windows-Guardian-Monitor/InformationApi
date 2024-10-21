@@ -2,6 +2,7 @@
 {
     public interface IEmailService
     {
-        void Send(string password, string userName, string emailDestination);
-    }
+        void SendNewUserRegistration(string password, string userName, string emailDestination);
+        void SendResetPassword(string password, string userName, string emailDestination);
+	}
 }

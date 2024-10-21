@@ -5,40 +5,46 @@
 @using ClientServer.Client.Services
 @using ClientServer.Shared.Reponses
 @using ClientServer.Shared.Requests
-@using InformationHandlerApi.Business.Responses
-@using InformationHandlerApi.Database.Models
 
 <PageTitle>Criação de Regras</PageTitle>
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
 @inject ICustomSnackbarOperator _customSnackbarOperator;
 @inject PageNavigationHelper _pageNavigationHelper
-<ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_customSnackbarOperator" />
-<h3>Selecione as aplicações para bloquear</h3>
-@if (_rule.ProgramsWithSelectedOnes is null)
-{
-	<div>
-		Carregando programas...
-	</div>
-}
-else
-{
-	<div style="margin-bottom:10px">
-		<label>Nome da regra:</label>
-		<input class="form-control" @bind="_rule.RuleName" placeholder="Por favor crie um nome para esta regra" />
-	</div>
-	<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 0; margin: 0;">
-		<ul style="padding: 0; margin: 0; list-style: none;">
-			@foreach (var item in _rule.ProgramsWithSelectedOnes)
-			{
-				<ClientServer.Client.Pages.Rules.RuleItems.ProgramToSelectItem Program="@item"></ClientServer.Client.Pages.Rules.RuleItems.ProgramToSelectItem>
-			}
-		</ul>
-	</div>
+
+<AuthorizeView>
+	<NotAuthorized>
+		<ClientServer.Client.Pages.Components.AccessDenied />
+	</NotAuthorized>
+	<Authorized>
+		<ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_customSnackbarOperator" />
+		<h3>Selecione as aplicações para bloquear</h3>
+		@if (_rule is null || _rule.ProgramsWithSelectedOnes is null)
+		{
+			<div>
+				Carregando programas...
+			</div>
+		}
+		else
+		{
+			<div style="margin-bottom:10px">
+				<label>Nome da regra:</label>
+				<input class="form-control" @bind="_rule.RuleName" placeholder="Por favor crie um nome para esta regra" />
+			</div>
+			<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 0; margin: 0;">
+				<ul style="padding: 0; margin: 0; list-style: none;">
+					@foreach (var item in _rule.ProgramsWithSelectedOnes)
+					{
+						<ClientServer.Client.Pages.Rules.RuleItems.ProgramToSelectItem Program="@item"></ClientServer.Client.Pages.Rules.RuleItems.ProgramToSelectItem>
+					}
+				</ul>
+			</div>
 
 
-	<Button @onclick=UpdateRuleOnServer style="margin-top:10px" class="btn btn-primary">Atualizar regra</Button>
-}
+			<Button @onclick=UpdateRuleOnServer style="margin-top:10px" class="btn btn-primary">Atualizar regra</Button>
+		}
+	</Authorized>
+</AuthorizeView>
 
 @code {
 	[Parameter]
@@ -100,7 +106,15 @@ else
 	{
 		try
 		{
-			_rule = _pageNavigationHelper.GetValue<RuleWithSelectedProgramsResponse>(Identifier);
+			var rule = _pageNavigationHelper.GetValue<RuleWithSelectedProgramsResponse>(Identifier);
+
+			if (rule is null)
+			{
+				_customSnackbarOperator.ShowErrorMessage("Houve um erro ao tentar atualizar esta regra");
+				return;
+			}
+
+			_rule = rule;
 		}
 		catch (Exception e)
 		{

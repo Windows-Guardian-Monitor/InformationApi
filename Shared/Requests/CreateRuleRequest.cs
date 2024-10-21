@@ -1,5 +1,5 @@
-﻿using ClientServer.Shared.Requests.Contracts;
-using InformationHandlerApi.Database.Models;
+﻿using ClientServer.Shared.Database.Models;
+using ClientServer.Shared.Requests.Contracts;
 
 namespace ClientServer.Shared.Requests
 {

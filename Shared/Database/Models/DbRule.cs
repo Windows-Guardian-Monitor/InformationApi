@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
-namespace InformationHandlerApi.Database.Models
+namespace ClientServer.Shared.Database.Models
 {
 	public class DbRule
 	{

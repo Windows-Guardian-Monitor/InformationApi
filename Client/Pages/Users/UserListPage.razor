@@ -1,0 +1,266 @@
+﻿@page "/users"
+@using ClientServer.Client.Operators.Contracts
+@using ClientServer.Client.Services.Contracts
+@using ClientServer.Shared.Database.Models.Authentication
+@using ClientServer.Shared.Reponses
+@using ClientServer.Shared.Requests.User
+
+@inject IUserSessionService _userSessionService
+@inject NavigationManager NavigationManager
+@inject HttpClient Http
+@inject ICustomSnackbarOperator _customSnackbarOperator
+
+<PageTitle>Lista de Usuários</PageTitle>
+
+
+<ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_customSnackbarOperator" />
+<AuthorizeView>
+	<NotAuthorized>
+		<ClientServer.Client.Pages.Components.AccessDenied />
+	</NotAuthorized>
+	<Authorized>
+		<h3>Lista de Usuários</h3>
+		@if (_isLoading)
+		{
+			<ClientServer.Client.Pages.Components.LoadingComponent />
+		}
+		else
+		{
+			<AuthorizeView Roles="Administrator" Context="adminCtx">
+				@if (ShowDeleteConfirmation)
+				{
+					<ClientServer.Client.Pages.Components.Confirmation.CustomMBox Title="Confirmar deleção de usuário"
+																				  Message="Tem certeza que deseja apagar este usuário?"
+																				  OnConfirm="DeleteUser"
+																				  OnCancel="CancelAction" />
+				}
+
+				@if (ShowResetPasswordConfirmation)
+				{
+					<ClientServer.Client.Pages.Components.Confirmation.CustomMBox Title="Confirmar troca de senha do usuário"
+																				  Message="Tem certeza que deseja trocar a senha deste usuário?"
+																				  OnConfirm="ResetUserPassword"
+																				  OnCancel="CancelAction" />
+				}
+
+				@if (Users.Count is 0)
+				{
+					<div>
+						Não foi possivel buscar os usuários
+					</div>
+				}
+				else
+				{
+					@foreach (var user in Users)
+					{
+						<div class="rounded border" style="margin: 10px">
+							<UserComponent User="user" />
+							<div style="margin: 10px">
+								<Button class="btn btn-warning btn-sm mx-1" @onclick="() => SetUpdateConfirmationDate(user.Id)">Trocar senha</Button>
+								<Button class="btn btn-danger btn-sm mx-1" @onclick="() => SetDeleteConfirmationDate(user.Id)">Apagar usuário</Button>
+							</div>
+						</div>
+					}
+				}
+			</AuthorizeView>
+			<AuthorizeView Roles="Common" Context="commonCtx">
+				@if (Users is null)
+				{
+					<div>
+						Buscando usuários...
+					</div>
+				}
+				else
+				{
+					@if (Users.Count is 0)
+					{
+						<div>
+							Não foi possivel buscar os usuários
+						</div>
+					}
+					else
+					{
+						@foreach (var user in Users)
+						{
+							<div class="rounded border" style="margin: 10px">
+								<UserComponent User="user" />
+							</div>
+						}
+					}
+				}
+			</AuthorizeView>
+		}
+	</Authorized>
+</AuthorizeView>
+
+@code {
+
+	private bool _isLoading = false;
+
+	private List<DbUserWithoutPassword> Users { get; set; } = new List<DbUserWithoutPassword>();
+
+	public bool ShowDeleteConfirmation { get; set; }
+
+	public bool ShowResetPasswordConfirmation { get; set; }
+
+	private int _id = 0;
+
+	private void SetDeleteConfirmationDate(int userId)
+	{
+		_id = userId;
+		ShowDeleteConfirmation = true;
+	}
+
+	private void SetUpdateConfirmationDate(int userId)
+	{
+		_id = userId;
+		ShowResetPasswordConfirmation = true;
+	}
+
+	private void CancelAction()
+	{
+		_id = 0;
+		ShowDeleteConfirmation = false;
+		ShowResetPasswordConfirmation = false;
+	}
+
+	private async Task DeleteUser()
+	{
+		try
+		{
+			ShowDeleteConfirmation = false;
+
+			const string endpoint = "Auth";
+
+			var url = $"{InformationHandler.GetUrl()}{endpoint}/DeleteUser";
+
+			var reset = new GeneralChangeUserRequest
+				{
+					UserId = _id
+				};
+
+			var response = await Http.PostAsJsonAsync(url, reset);
+
+			var json = await response.Content.ReadAsStringAsync();
+
+			var standardResponse = JsonSerializer.Deserialize<StandardResponse>(json);
+
+			if (standardResponse.Success is false)
+			{
+				_customSnackbarOperator.ShowErrorMessage(standardResponse.Message);
+				return;
+			}
+
+			_customSnackbarOperator.ShowInformationMessage("O usuário foi apagado com sucesso");
+
+			Users.Remove(Users.FirstOrDefault(u => u.Id == _id));
+		}
+		catch (Exception e)
+		{
+			_customSnackbarOperator.ShowErrorMessage(e.Message);
+		}
+		finally
+		{
+			_id = 0;
+			ShowDeleteConfirmation = false;
+			ShowResetPasswordConfirmation = false;
+		}
+	}
+
+	private async Task ResetUserPassword()
+	{
+		try
+		{
+			_isLoading = true;
+
+			ShowResetPasswordConfirmation = false;
+
+			const string endpoint = "Auth";
+
+			var url = $"{InformationHandler.GetUrl()}{endpoint}/AdminResetPassword";
+
+			var reset = new GeneralChangeUserRequest
+				{
+					UserId = _id
+				};
+
+			var response = await Http.PostAsJsonAsync(url, reset);
+
+			var json = await response.Content.ReadAsStringAsync();
+
+			var standardResponse = JsonSerializer.Deserialize<StandardResponse>(json);
+
+			if (standardResponse.Success is false)
+			{
+				_customSnackbarOperator.ShowErrorMessage(standardResponse.Message);
+				return;
+			}
+
+			_customSnackbarOperator.ShowInformationMessage("A senha do usuário foi trocada com sucesso", "Foi enviado um e-mail com a nova senha");
+		}
+		catch (Exception e)
+		{
+			_customSnackbarOperator.ShowErrorMessage(e.Message);
+		}
+		finally
+		{
+			_id = 0;
+			ShowDeleteConfirmation = false;
+			ShowResetPasswordConfirmation = false;
+			_isLoading = false;
+		}
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			Users = new List<DbUserWithoutPassword>();
+
+			const string endpoint = "Auth";
+
+			var url = $"{InformationHandler.GetUrl()}{endpoint}/GetAllUsers";
+
+			var sessionInfo = await _userSessionService.GetSessionInformationAsync();
+
+			if (sessionInfo is null)
+			{
+				return;
+			}
+
+			var isAdmin = sessionInfo.Role.Equals("Administrator", StringComparison.OrdinalIgnoreCase) ? true : false;
+
+			var userListReq = new UserListRequest()
+				{
+					IsRequestFromAdmin = isAdmin
+				};
+
+			var response = await Http.PostAsJsonAsync(url, userListReq);
+
+			var json = await response.Content.ReadAsStringAsync();
+
+			var userResponse = JsonSerializer.Deserialize<UsersResponse>(json);
+
+			if (userResponse is null)
+			{
+				throw new Exception("Não foi possível obter os usuários");
+			}
+
+			userResponse.Users = userResponse.Users.OrderBy(u => u.UserName).ToList();
+
+			foreach (var user in userResponse.Users)
+			{
+				if (user.UserName.Equals(sessionInfo.UserName, StringComparison.OrdinalIgnoreCase) || user.UserName.Equals("admin", StringComparison.OrdinalIgnoreCase))
+				{
+					continue;
+				}
+
+				Users.Add(user);
+			}
+		}
+		catch (Exception e)
+		{
+			_customSnackbarOperator.ShowErrorMessage(e.Message);
+		}
+	}
+}

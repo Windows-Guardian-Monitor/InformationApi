@@ -1,0 +1,282 @@
+﻿@page "/performance_report"
+@using ClientServer.Client.Models
+@using ClientServer.Client.Operators.Contracts
+@using ClientServer.Shared.Reponses
+@using ClientServer.Shared.Reponses.Performances
+@using ClientServer.Shared.Requests.Events
+@using ClientServer.Shared.Requests.Performances
+
+
+@inject HttpClient Http
+@inject PieChartManager _cpuPieChartManager
+@inject PieChartManager _ramPieChartManager
+
+@inject BarChartManager _cpuBarChartManager
+@inject BarChartManager _ramBarChartManager
+@inject ICustomSnackbarOperator _customSnackbarOperator
+
+<PageTitle>Relatório de Desempenho</PageTitle>
+
+<AuthorizeView>
+	<NotAuthorized>
+		<ClientServer.Client.Pages.Components.AccessDenied />
+	</NotAuthorized>
+	<Authorized>
+
+		<ClientServer.Client.Pages.Components.CustomSnackbar SnackbarOperator="_customSnackbarOperator" />
+		<h3>Relatório de Desempenho das Máquinas</h3>
+		@if (_workstationList is null)
+		{
+			<div>Carregando lista de máquinas</div>
+		}
+
+		@if (_workstationList is not null && _workstationList.Count is 0)
+		{
+			<div>Não há máquinas disponíveis para fazer o filtro</div>
+		}
+
+		@if (_workstationList is not null && _workstationList.Count > 0)
+		{
+			<select class="form-select" @bind="@_selectedWorkstation">
+				@foreach (var item in _workstationList)
+				{
+					<option>@item</option>
+
+				}
+			</select>
+		}
+
+		<div style="display: flex; flex-wrap: wrap; justify-content: start">
+			<PieChart @ref="_cpuPieChartManager.PieChart" Width="350" style="margin-bottom: 50px" />
+			<PieChart @ref="_ramPieChartManager.PieChart" Width="350" style="margin-bottom: 50px" />
+		</div>
+
+		<DateInput TValue="DateOnly" @bind-Value="@_dateChosen" Placeholder="Por favor escolha uma data" />
+		<div>
+			Data escolhida: @_dateChosen
+		</div>
+		<Button style="margin-bottom: 10px" class="btn btn-info" @onclick="async() => await SeachByDay()">Buscar informações do dia escolhido</Button>
+		<div style="display: flex; flex-wrap: wrap; justify-content: start">
+			<BarChart @ref="_cpuBarChartManager.BarChart" Width="750" Height="300" />
+			<BarChart @ref="_ramBarChartManager.BarChart" Width="750" Height="300" />
+		</div>
+
+	</Authorized>
+</AuthorizeView>
+
+@code
+{
+	private DateOnly _dateChosen = DateOnly.FromDateTime(DateTime.Now);
+
+	private string _selectedWorkstation;
+	private List<string> _workstationList;
+
+	private bool _hideRamUsage = true;
+
+	private const string _cpuChartName = "Uso do processador";
+	private const string _cpuUsageDuringDayChartName = "Uso do processador durante o dia";
+	private const string _ramChartName = "Uso da memória";
+	private const string _ramUsageDuringDayChartName = "Uso da memória durante o dia";
+
+	private bool _isLoading = false;
+
+	private async ValueTask<PerformanceResponse> GetInfoFromServer()
+	{
+		if (string.IsNullOrEmpty(_selectedWorkstation))
+		{
+			_customSnackbarOperator.ShowWarningMessage("Por favor selecione uma máquina para buscar as o desempenho dela");
+			return null;
+		}
+
+		var url = $"{InformationHandler.GetUrl()}Performance/GetPerformanceInformation";
+
+		var performanceRequest = new PerformanceRequest()
+			{
+				MachineName = _selectedWorkstation
+			};
+
+		var r = await Http.PostAsJsonAsync(url, performanceRequest);
+
+		var json = await r.Content.ReadAsStringAsync();
+
+		var response = JsonSerializer.Deserialize<PerformanceResponse>(json);
+
+		if (response is null)
+		{
+			throw new Exception("Houve um erro ao buscar as aplicações");
+		}
+
+		if (response.Success is false)
+		{
+			throw new Exception(response.Message);
+		}
+
+		return response;
+	}
+
+	private async ValueTask UpdateInfoOnScreen(PerformanceResponse response)
+	{
+		if (response is null)
+		{
+			_customSnackbarOperator.ShowWarningMessage("Atualizando");
+			return;
+		}
+
+		try
+		{
+			var used = 0;
+			if (int.TryParse(response.CpuPerformance.CpuUsagePercentage, out used))
+			{
+				var available = 100 - used;
+				// _cpuPieChartManager.SetChartData(available, used);
+				// await _cpuPieChartManager.InitializeChartAsync(available, used);
+				await _cpuPieChartManager.UpdateChart(_cpuChartName, available, used);
+			}
+			else
+			{
+				_customSnackbarOperator.ShowWarningMessage("Não foi possível converter as informações vindas do servidor");
+			}
+
+			if (int.TryParse(response.RamPerformance.RamUsagePercentage, out used))
+			{
+				var available = 100 - used;
+				await _ramPieChartManager.UpdateChart(_ramChartName, available, used);
+			}
+		}
+		finally
+		{
+			_customSnackbarOperator.Hide();
+		}
+	}
+
+	private async ValueTask SearchForNew()
+	{
+		var periodicTimer = new PeriodicTimer(TimeSpan.FromSeconds(5));
+
+		do
+		{
+			try
+			{
+				await UpdateInfoOnScreen(await GetInfoFromServer());
+			}
+			catch
+			{
+				//ignored
+			}
+
+		} while (await periodicTimer.WaitForNextTickAsync());
+	}
+
+	private async Task SeachByDay()
+	{
+		try
+		{
+			_customSnackbarOperator.Hide();
+
+			var url = $"{InformationHandler.GetUrl()}Performance/GetSpecifcPerformanceInformation";
+
+			var customDate = new CustomDate
+				{
+					Day = _dateChosen.Day,
+					Month = _dateChosen.Month,
+					Year = _dateChosen.Year
+				};
+
+			var performanceRequest = new OneDayPerformanceRequest()
+				{
+					MachineName = _selectedWorkstation,
+					CustomDate = customDate
+				};
+
+			var r = await Http.PostAsJsonAsync(url, JsonSerializer.Serialize(performanceRequest));
+
+			var json = await r.Content.ReadAsStringAsync();
+
+			var response = JsonSerializer.Deserialize<OneDayPerformanceResponse>(json);
+
+			if (response.Success is false)
+			{
+				_customSnackbarOperator.ShowErrorMessage(response.Message);
+				return;
+			}
+
+			var showedAny = false;
+
+			if (response.CpuPerformancesOfDay.All(c => c == 0) is false)
+			{
+				showedAny = true;
+				await _cpuBarChartManager.UpdateAsync($"{_cpuUsageDuringDayChartName} - {customDate.Day}/{customDate.Month}/{customDate.Year}", response.CpuPerformancesOfDay);
+			}
+
+			if (response.RamPerformancesOfDay.All(c => c == 0) is false)
+			{
+				showedAny = true;
+				await _ramBarChartManager.UpdateAsync($"{_ramUsageDuringDayChartName} - {customDate.Day}/{customDate.Month}/{customDate.Year}", response.RamPerformancesOfDay);
+			}
+
+			if (showedAny is false)
+			{
+				_customSnackbarOperator.ShowWarningMessage(
+					"Os gráficos diários do processador ou da memória não serão exibidos",
+					"Não há dados coletados para o dia escolhido");
+			}
+		}
+		catch (Exception e)
+		{
+			_customSnackbarOperator.ShowErrorMessage(e.Message);
+		}
+		finally
+		{
+			_isLoading = false;
+		}
+	}
+
+	private async Task LoadWorkstationsToSelectPerformance()
+	{
+		try
+		{
+			var url = $"{InformationHandler.GetUrl()}{"Information/GetAllWorkstations"}";
+
+			var response = await Http.GetFromJsonAsync<AllWorkstationsResponse>(url);
+
+			if (response is null)
+			{
+				throw new Exception("Houve um erro ao buscar as máquinas");
+			}
+
+			if (response.Workstations.Count is 0)
+			{
+				_workstationList = new List<string>();
+				return;
+			}
+
+			_workstationList = response.Workstations.Select(w => w.HostName).ToList();
+
+			if (_workstationList.Count is 1)
+			{
+				_selectedWorkstation = _workstationList[0];
+			}
+		}
+		catch (Exception e)
+		{
+			_customSnackbarOperator.ShowErrorMessage(e.Message);
+		}
+	}
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			await _cpuPieChartManager.InitializeChartAsync();
+			await _cpuBarChartManager.InitializeChartAsync();
+		}
+		await base.OnAfterRenderAsync(firstRender);
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadWorkstationsToSelectPerformance();
+		Task.Run(SearchForNew);
+		await base.OnInitializedAsync();
+	}
+}

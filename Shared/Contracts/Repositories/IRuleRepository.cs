@@ -1,12 +1,12 @@
-﻿using InformationHandlerApi.Database.Models;
+﻿using ClientServer.Shared.Database.Models;
 
-namespace InformationHandlerApi.Contracts.Repositories
+namespace ClientServer.Shared.Contracts.Repositories
 {
-    public interface IRuleRepository
-    {
-        void Insert(DbRule dbRule);
-        List<DbRule> GetAll();
-        void DeleteById(int id);
-        DbRule GetById(int id);
+	public interface IRuleRepository
+	{
+		void Insert(DbRule dbRule);
+		List<DbRule> GetAll();
+		void DeleteById(int id);
+		DbRule GetById(int id);
 	}
 }

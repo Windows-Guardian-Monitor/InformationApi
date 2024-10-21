@@ -1,4 +1,4 @@
-﻿using InformationHandlerApi.Database.Models;
+﻿using ClientServer.Shared.Database.Models;
 
 namespace ClientServer.Shared.Requests.Contracts
 {

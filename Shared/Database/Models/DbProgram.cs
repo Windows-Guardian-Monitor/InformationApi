@@ -1,23 +1,24 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
-namespace InformationHandlerApi.Database.Models
+namespace ClientServer.Shared.Database.Models
 {
 	public class DbProgram
 	{
-		public DbProgram(string path, string name, string hash)
+		public DbProgram(string path, string name, string hash, string hostname)
 		{
 			Path = path;
 			Name = name;
 			Hash = hash;
+			Hostname = hostname;
 		}
 
-        public DbProgram()
-        {
-            
-        }
+		public DbProgram()
+		{
 
-        [Key]
+		}
+
+		[Key]
 		[JsonPropertyName("Id")]
 		public int Id { get; set; }
 
@@ -29,5 +30,8 @@ namespace InformationHandlerApi.Database.Models
 
 		[JsonPropertyName("Hash")]
 		public string Hash { get; set; }
-	}
+
+		[JsonPropertyName("Hostname")]
+        public string Hostname { get; set; }
+    }
 }

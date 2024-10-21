@@ -1,0 +1,40 @@
+﻿@using ClientServer.Shared.Database.Models.Authentication
+<div>
+	<div class="card-body p-2 d-flex justify-content-between align-items-center">
+		<AuthorizeView Roles="Administrator">
+			<Authorized>
+				<div>
+					<div>
+						<strong>Nome de usuário:</strong> @User.UserName
+					</div>
+					<div>
+						<strong>Tipo de usuário:</strong> @User.UserType
+					</div>
+					<div>
+						<strong>E-mail:</strong> @User.Email
+					</div>
+				</div>
+			</Authorized>
+		</AuthorizeView>
+		<AuthorizeView Context="commctx" Roles="Common">
+			<Authorized>
+				<div>
+					<div>
+						<strong>Nome de usuário:</strong> @User.UserName
+					</div>
+					<div>
+						<strong>Tipo de usuário:</strong> @User.UserType
+					</div>
+					<div>
+						<strong>E-mail:</strong> @User.Email
+					</div>
+				</div>
+			</Authorized>
+		</AuthorizeView>
+	</div>
+</div>
+
+@code {
+	[Parameter]
+	public DbUserWithoutPassword User { get; set; }
+}

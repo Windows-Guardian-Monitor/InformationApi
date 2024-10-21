@@ -2,11 +2,13 @@
 {
 	public class PageNavigationHelper
 	{
-		private readonly Dictionary<string, object> ValueDictionary;
+		private readonly Dictionary<string, object> ValueDictionary = new();
 
-        public PageNavigationHelper()
-        {
-			ValueDictionary = new();
+		public string UserName { get; private set; }
+
+		public void SetUserName(string userName)
+		{
+			UserName = userName;
 		}
 
         public string AddValue<T>(T value) where T : class
@@ -55,7 +57,7 @@
 
 			ValueDictionary.Remove(id);
 
-			return value is not int r ? throw new InvalidOperationException($"Incorret type happened") : r;
+			return value is not int r ? throw new InvalidOperationException($"Incorrect type error") : r;
 		}
 
 		public T GetValue<T>(string id) where T : class
@@ -67,7 +69,7 @@
 
 			ValueDictionary.Remove(id);
 
-			return value is not T r ? throw new InvalidOperationException($"Something happened") : r;
+			return value is not T r ? throw new InvalidOperationException($"Incorrect type error") : r;
 		}
 	}
 }
