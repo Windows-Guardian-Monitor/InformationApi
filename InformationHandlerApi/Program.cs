@@ -2,6 +2,7 @@ using ClientServer.Shared.Contracts.Repositories;
 using ClientServer.Shared.Database;
 using ClientServer.Shared.Database.Repositories;
 using ClientServer.Shared.Database.Repositories.Performance;
+using ClientServer.Shared.Database.Repositories.Programs;
 using InformationHandlerApi.Contracts;
 using InformationHandlerApi.Services;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +31,7 @@ namespace InformationHandlerApi
             builder.Services.AddTransient<IProgramRepository, ProgramRepository>();
             builder.Services.AddTransient<IRuleRepository, RuleRepository>();
             builder.Services.AddTransient<IUserRepository, UserRepository>();
+            builder.Services.AddTransient<ProgramStartRepository>();
 
             builder.Services.AddTransient<CpuPerformanceRepository>();
             builder.Services.AddTransient<RamPerformanceRepository>();

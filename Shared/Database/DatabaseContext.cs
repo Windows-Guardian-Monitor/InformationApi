@@ -3,6 +3,7 @@ using ClientServer.Shared.Database.Models.Authentication;
 using ClientServer.Shared.Models;
 using ClientServer.Shared.Requests.Events;
 using Microsoft.EntityFrameworkCore;
+using static ClientServer.Shared.Models.ProgramWithTime;
 namespace ClientServer.Shared.Database;
 
 public class DatabaseContext : DbContext
@@ -37,4 +38,6 @@ public class DatabaseContext : DbContext
 	public DbSet<ProcessFinishedEvent> ProcessFinishedEvents { get; set; }
     public DbSet<CpuPerformanceModel> CpuPerformanceMonitor { get; set; }
     public DbSet<RamPerformanceModel> RamPerformanceMonitor { get; set; }
+
+    public DbSet<DbProgramWithExecutionTime> ExecutionTimes { get; set; }
 }
